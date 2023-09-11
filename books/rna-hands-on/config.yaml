@@ -38,13 +38,3 @@ https://github.com/ddpmntcpbr/rails-next-zenn-clone\n
 topics: ["rails", "next.js", "aws", "駆け出しエンジニアと繋がりたい"] # トピック（5つまで）
 published: false
 price: 2000
-chapters:
-  - 1.intro-01
-  - 1.intro-02
-  - 2.setup-01
-  - 2.setup-02
-  - 2.setup-03
-  - 2.setup-04
-  - 2.setup-05
-  - 2.setup-06
-  - 2.setup-07
