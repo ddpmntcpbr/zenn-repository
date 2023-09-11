@@ -1,0 +1,486 @@
+## この章でやること
+
+Next.jsのおおまかな仕組みを把握すること。
+
+## hello_worldページを作る
+
+「React.jsとは？」「Next.jsとは？」といった内容を言葉で説明する前に、先にコードを書いてみて、そこから仕組みを理解していこうと思います。
+
+まず、`next/src/pages`配下に、`hello_world.tsx`を以下のように作成してください。
+
+```tsx:next/src/pages/hello_world.tsx
+import type { NextPage } from 'next'
+
+const HelloWorld: NextPage = () => {
+  return <div>Hello World!</div>
+}
+
+export default HelloWorld
+```
+
+npmサーバーが起動していることを確認してください。起動していない場合は以下で起動させてください。
+
+```sh:nextコンテナ
+npm run dev
+```
+
+http://localhost:8000/hello_world にアクセスすると、「Hello World!」が画面に表示されていることが確認できると思います。
+
+![](https://storage.googleapis.com/zenn-user-upload/04fddbc46afb-20230627.png)
+
+なんとなくのイメージとして、`/hello_world`のパスで表示される画面と、上記で実装した`hello_world.tsx`が対応していることがつかめるかと思います。
+
+ここをもう少し掘り下げていき、Next.jsについての理解を深めていきます。
+
+## React.jsとは？
+
+上記で作成した、`hello_world.tsx`ファイルは、React.jsのファイルになります。
+
+:::message
+通常の React.js のファイル拡張子は`jsx`になりますが、これを Typescript が
+利用できるものに拡張したものが`tsx`となります。
+
+いずれも、 React.jsの拡張子であることには変わりません。
+:::
+
+React.jsはJavascriptライブラリの一つで、超ざっくりと表現すると「JavascriptでHTMLを扱うためのもの」になります。
+
+具体的にどのようにJavascriptでHTMLを扱えるのか、再び`hello_world.jsx`を見ていきます。`hello_world.tsx`は、大きく分けると3つの部分からなっています。
+
+1. ライブラリのインポート
+2. 関数の定義
+3. 関数のエクスポート
+
+```tsx:1. ライブラリのインポート
+import type { NextPage } from 'next'
+```
+
+```tsx:2. 関数の定義
+const HelloWorld = () => {
+  return <div>Hello World!</div>
+}
+```
+
+```tsx:3. 関数のエクスポート
+export default HelloWorld
+```
+
+まず最初に「2. 関数の定義」を見てみると、`HelloWorld`という命名の関数がアロー形式で定義されています。
+
+この`HelloWorld`はJavascriptで記述された関数ですが、`<div>Hello World!</div>`という**HTML要素を返す**というのが特徴です。
+
+次に「1. ライブラリのインポート」に戻ってみると、先ほど「2. 関数の定義」において、`HelloWorld`関数の型を定義するために使用されていた`NextPage`という型をインポートしています。
+
+`NextPage`はNext.jsに元々備わっている型で、Next.jsにおけるページコンポーネントを定義する型になります。この段階ではピンと来にくいかと思いますので、「`HelloWorld`という関数の型を決めているおまじない」くらいでいったんはOKです。
+
+最後に「3. 関数のエクスポート」では、`HelloWorld`関数をエクスポートする記述が行われております。`export default HelloWorld`は言い換えると「このファイルを外部ファイルから読み込んだ時は、HelloWorldという関数を読み込んだものとみなす」という意味です。
+
+以上をまとめると、`hello_world.tsx`は、ファイル全体として「HTML要素を返す関数」として振る舞うことになります。
+
+ここで注目すべきなのはは、`HelloWorld`という関数それ自体はHTMLで書かれたものではなく、Javascriptで書かれた関数であるという点です。この関数の中ではJavascriptを書くことができ、Javascriptを用いて最終的に返すHTMLを柔軟に制御することができます。
+
+JavascriptでHTMLを制御する一例を示します。`hello_world.tsx`を以下のように書き換えてみてください。
+
+```tsx:next/src/pages/hello_world.tsx
+import type { NextPage } from 'next'
+
+const HelloWorld: NextPage = () => {
+  const count = 100
+
+  return <div>Hello World! / {count}</div>
+}
+
+export default HelloWorld
+```
+
+`count`というJavascriptの変数を定義した後、HTML内で`{count}`という記述を行うことでこの変数を呼び出しています。（カギ括弧`{}`でくくるのが変数を呼びだすルールです）。
+
+再度 http://localhost:8000/hello_world を確認すると、変更が反映されていることが確認できるはずです。
+
+![](https://storage.googleapis.com/zenn-user-upload/fddb85669277-20230627.png)
+
+React.jsを「JavascriptでHTMLを扱うためのもの」と表現しましたが、より解像度をあげると「HTML要素を返すJavascript関数を定義することによって、HTMLをJavascriptによって制御するためのもの」と表現することができます。
+
+React.jsでHTMLを制御する際に注意点として、返すHTMLは一つのタグでまとめられているものでなくてはなりません。例えば、以下のような記述をするとエラーになります。
+
+```tsx:next/src/pages/hello_world.tsx
+import type { NextPage } from 'next'
+
+const HelloWorld: NextPage = () => {
+  return (
+    <h1>Title</h1>
+    <p>content</p>
+  )
+}
+
+export default HelloWorld
+```
+
+`<h1>`タグと`<p>`タグの複数タグを返そうとしているため、エラーになってしまいます。エラーを解消するためには、HTML全体をひとつの`<div>`タグでくくってあげる必要があります。
+
+```tsx:next/src/pages/hello_world.tsx
+import type { NextPage } from 'next'
+
+const HelloWorld: NextPage = () => {
+  return (
+    <div>
+      <h1>Title</h1>
+      <p>content</p>
+    </div>
+  )
+}
+
+export default HelloWorld
+```
+
+再度 http://localhost:8000/hello_world を確認すると、正常に画面が読み込まれていることが確認できるはずです。
+
+![](https://storage.googleapis.com/zenn-user-upload/f8976497b22e-20230627.png)
+
+さらに React.js においては、一番外側の`<div>`タグは`<>`という表記で省略できます。
+
+```tsx:next/src/pages/hello_world.tsx
+import type { NextPage } from 'next'
+
+const HelloWorld: NextPage = () => {
+  return (
+    <>
+      <h1>Title</h1>
+      <p>content</p>
+    </>
+  )
+}
+
+export default HelloWorld
+```
+
+こちらでも問題なく画面が表示されます。
+
+## Reactコンポーネントとは？
+
+ここまでで「`hello_world.tsx`を読み込むことで、HTML要素`<>...</>`を返す」というイメージを掴んでいただいたかと思います。
+
+次は`hello_world.tsx`で別の React.js ファイルを呼び出し、実際にHTMLが返されることを確認してみたいと思います。
+
+`next/src/components`ディレクトリを新規作成し、`SimpleButton.tsx`を作成してください。
+
+```tsx:next/src/components/SimpleButton.tsx
+import React from 'react'
+
+const SimpleButton: React.FC = () => {
+  return <button>Click Here</button>
+}
+
+export default SimpleButton
+```
+
+おおまかな構成は`hello_world.tsx`と似ており、`<button>Click Here</button>`というHTML要素を返す React.js ファイルであることが分かります。
+
+大きな違いとしては、`SimpleButton`関数に当てている型が`NextPage`ではなく`React.FC`となっていますが、挙動の理解のはあまり関係がないのでいったんはおまじないと捉えてください（後ほど説明します）。
+
+早速これを、`hello_world.tsx`で呼び出してみたいと思います。以下のように書き換えてください。
+
+```diff tsx:next/src/pages/hello_world.tsx
+import type { NextPage } from 'next'
++ import SimpleButton from '@/components/SimpleButton'
+
+const HelloWorld: NextPage = () => {
+  return (
+    <>
+      <h1>Title</h1>
+      <p>content</p>
++     <SimpleButton />
+    </>
+  )
+}
+
+export default HelloWorld
+```
+
+この状態で http://localhost:8000/hello_world を確認すると、「Click Here」というボタンが画面内に配置されていることが確認できます。
+
+![](https://storage.googleapis.com/zenn-user-upload/5be4b8ca1330-20230627.png)
+
+`import SimpleButton from '@/components/SimpleButton'`で、先ほど作成した`SimpleButton.tsx`から`SimpleButton`関数をインポートしています（`@/`はルートパスを表しており、`next/src/`と同義）
+
+インポートした`SimpleButton`関数を return の中に配置して使用しています（Reactで定義した関数は`<SimpleButton />`のような形で使用します）。`SimpleButton`関数が返すのは`<button>Click Here</button>`であったので、これが`<SimpleButton />`として展開されることで、最終的に画面上に描画されているという流れです。
+
+このように、React.jsにおいては、ひとつの React.js ファイルで定義した関数を、別のReact.js ファイルで呼び出して使用することができます。
+
+Reactの世界ではこの性質をうまく利用できるよう、アプリケーションを構成要素を「複数の箇所で繰り返し利用できる部品として切り出したもの」をひとつのReact.jsファイルとして保存します。そしれ、それらを適切に組み合わせたものをさらに新たなReact.jsファイルとして保存する・・・といった階層構造を形成してアプリケーションを設計していきます。
+
+「複数の箇所で繰り返し利用できる部品として切り出したもの」を表す言葉が`コンポーネント`で、特にReact.jsを利用して作成されたコンポーネントのことを`Reactコンポーネント`といいます。また、ひとつ`Reactコンポーネント`が、ひとつの`jsx`/`tsx`ファイルに対応しています。
+
+これまでは、`hello_world.tsx`で実装されている`HelloWorld`を単なる「関数」と読んできましたが、「Reactコンポーネントを構成する関数」という意味で`関数コンポーネント`と呼ぶこともあります。
+
+:::message
+Reactの初期バージョンでは、Reactコンポーネントを構成する土台部分は、関数ではなくクラスを利用していました。
+
+どちらも同じReactコンポーネントですが、区別するための表現として`関数コンポーネント`、`クラスコンポーネント`という言葉が生まれました。
+
+現在は`関数コンポーネント`を利用することが主流となっていますが、これは後に説明する`React hooks`というとても便利なメソッド群を利用できる点が大きいとされています。
+:::
+
+今回のケースでは、`pages/hello_world.tsx`で実装されている`HelloWord`というReactコンポーネントが、`components/SimpiButton.tx`で実装されている`SimpleButton`というReactコンポーネントを呼び出して使用しています。
+
+このとき、`HelloWord`の方を`親コンポーネント`、`SimpleButton`の方を`子コンポーネント`というように、呼び出す側と呼び出される側を親子関係になぞらえて表現したりします。
+
+Reactの世界は、小さな単位のコンポーネントを組み合わせることで複雑なコンポーネントを作り、それをさらに組み合わせて・・・といった感じのことを繰り返してアプリケーションを設計するので、コンポーネント設計の世界、とも表現されます。
+
+## JSX記法
+
+先ほどの、`HelloWorld`関数コンポーネントで`SimpleButton`関数コンポーネント呼び出すくだりをもう一度見てみます。
+
+```tsx:next/src/pages/hello_world.tsx
+import type { NextPage } from 'next'
+import SimpleButton from '@/components/SimpleButton'
+
+const HelloWorld: NextPage = () => {
+  return (
+    <>
+      <h1>Title</h1>
+      <p>content</p>
+      <SimpleButton />
+    </>
+  )
+}
+
+export default HelloWorld
+```
+
+先ほどはさらっと流してしまいましたが、よく考えてみると「returnで返している中身が、従来のHTMLではなくなっている」ことに気づくかと思います。
+
+`<h1>`や`<p>`はともかく、`<SimpleButton />`なんてものはHTMLの世界にはありません。直感的には`SimpleButton`コンポーネントを配置していることは理解できるかと思いますが、これが成立している時点で、ReactコンポーネントでリターンしているHTMLは通常のHTMLとはちょっと異なるもの、ということが分かるかと思います。
+
+実は、ReactコンポーネントがリターンするものはHTMLではなく、`JSX記法によって表現されたHTML`です。
+
+`JSX記法`というのは、Reactの世界でHTMLを扱いやすくするために生まれたHTMLの拡張表現で、主に以下のようなルールを持ちます。
+
+1. 原則、従来のHTMLはタグはすべて使用できる
+2. 外部インポートしたReactコンポーネントを、HTMLタグのような形式で記述して配置できる
+3. 同じ関数内で定義した変数や関数を、カギ括弧`{}`を使って呼び出せる
+4. class という名前は使用できず、代わりに className を使用する
+
+1はこれまでみてきた通りで、`<h1>`や`<p>`といった従来のHTMLタグはそのまま使用できます。
+
+2は`<SimpleButton />`が利用できているルールで、外部のReactコンポーネントをHTMLタグっぽい形で配置できます。
+
+3は、少し前に`{count}`の形で変数を呼び出していた箇所のルールです。変数に限らず、関数を呼び出すこともできます。例えば、`components/SimpleButton.tsx`で、ボタンを押した時にログが出力されるようにするには、以下のように書き換えればよいです。
+
+```diff tsx:next/src/components/SimpleButton.tsx
+import React from 'react'
+
+const SimpleButton: React.FC = () => {
++ const handleOnClick = () => {
++   console.log('Clicked!')
++ }
+
+- return <button>Click Here</button>
++ return <button onClick={handleOnClick}>Click Here</button>
+}
+
+export default SimpleButton
+```
+
+ボタンを押すと、 Google Chrome の検証ツールから、ログの出力を確認できます。
+
+![](https://storage.googleapis.com/zenn-user-upload/7e5c9004a33d-20230628.png)
+
+↓
+
+4だけは従来のHTMLとは異なる注意点で、JSX内のタグに class を指定したい場合は、 className で指定する必要があります。
+
+```jsx
+<div class="plane-text" >これはNG</div>
+<div className="plane-text" >これはOK</div>
+```
+
+:::message
+`class`は、Javascriptの世界では、オブジェクト指向プログラミングの`クラス`を表す予約語として設定されてしまっているので、それとの競合を避けるために、JSXではHTMLタグの`class`を`className`で置き換えて書くルールになっています。
+:::
+
+つまるところ、JSXは「JavascriptでHTMLを制御するというReactの思想をうまく落とし込めるようにHTMLをいい感じに拡張した記法」だと思っていただければと思います。
+
+## propsによる値渡し
+
+Reactの世界のコンポーネント設計について、もう少し深掘りします。
+
+現在の`SimpleButton.tsx`は、ボタンに書かれているテキストが「Click Here」固定になっています。ボタンコンポーネントはアプリケーションの様々な場面で利用することが想定されますが、テキストの内容ごとに別々のReactコンポーネントを作っていくというのは現実的ではないですよね。
+
+これを解決するのが、**propsによる値渡し**です。Reactにおいて、親コンポーネントから子コンポーネントを呼び出す時、親側から子に対して値を渡すことができます。
+
+まず、親コンポーネント側である`hello_world.tsx`から、子コンポーネント側に`text`という変数を渡す記述を行います。
+
+```diff tsx:next/src/pages/hello_world.tsx
+import type { NextPage } from 'next'
+import SimpleButton from '@/components/SimpleButton'
+
+const HelloWorld: NextPage = () => {
+  return (
+    <>
+      <h1>Title</h1>
+      <p>content</p>
+-     <SimpleButton />
++     <SimpleButton text={'From HelloWorld'} />
+    </>
+  )
+}
+
+export default HelloWorld
+```
+
+そして、`text`を受け取って`<button>`タグ内にセットするように、`SimpleButton.tsx`側を変更します。
+
+```tsx:next/src/components/SimpleButton.tsx
+import React from 'react'
+
+type SimpleButtonProps = {
+  text: string
+}
+
+const SimpleButton: React.FC<SimpleButtonProps> = (props) => {
+  const handleOnClick = () => {
+    console.log('Clicked!')
+  }
+
+  return <button onClick={handleOnClick}>{props.text}</button>
+}
+
+export default SimpleButton
+```
+
+いったん画面を確認すると、ボタンのテキストが親コンポーネントから渡した「From HelloWorld」に切り替わっていることが確認できると思います。
+
+![](https://storage.googleapis.com/zenn-user-upload/1970f386f25e-20230628.png)
+
+↓
+
+親コンポーネントから引き渡された値は、子コンポーネント側で`props`という変数の中に入ります。
+
+:::message
+厳密には、アロー記法の`()`の中に指定した変数の中に入るので別の名前でも動作しますが、`props`という名前を使用するのが暗黙のルールになっています。
+:::
+
+そして、`<button>`タグの中の`{props.text}`のような形で、受け取った値を取り出して使用することができます。この仕組みを使うことで、`SimpleButton`コンポーネントを使用する場所ごとに、表示させるテキストを切り替えることができるようになります。
+
+また、新規で追加されている`type SimpleButtonProps`というのは、Typescriptを利用して`props`に対して型を定義しているものです。
+
+`text`として`string`（文字列型）ではない値が入ってきたケース、`text`に何も渡されていないケース、`text`以外の変数に対して値が渡されているようなケースで、VSCodeでエラーが表示されるようになります。
+
+![](https://storage.googleapis.com/zenn-user-upload/e6c2ea50ba36-20230628.png)
+
+↓
+
+親コンポーネントから子コンポーネントに渡せるものは変数だけではありません。親コンポーネント側で定義した関数も渡すことができます。
+
+現在の`SimpleButton.tsx`は、クリックしても特定の文字列をログに出力する機能しかありません。ボタンをクリックしたときに発生してほしいイベントは使用箇所ごとに当然異なるはずなので、ボタンを配置する親コンポーネント側でクリック時の内容を定義できるようにする必要がありそうです。
+
+今回は、`HelloWorld`で定義した関数を`SimpleButton`に渡し、それを`<button>`タグの`onClick`イベントの設置してみようと思います。
+
+```tsx:next/src/pages/hello_world.tsx
+import type { NextPage } from 'next'
+import SimpleButton from '@/components/SimpleButton'
+
+const HelloWorld: NextPage = () => {
+  const handleOnClick = () => {
+    console.log('Clicked from hello_world')
+  }
+
+  return (
+    <>
+      <h1>Title</h1>
+      <p>content</p>
+      <SimpleButton text={'From HelloWorld'} onClick={handleOnClick} />
+    </>
+  )
+}
+
+export default HelloWorld
+```
+
+```tsx:next/src/components/SimpleButton.tsx
+import React from 'react'
+
+type SimpleButtonProps = {
+  text: string
+  onClick: () => void
+}
+
+const SimpleButton: React.FC<SimpleButtonProps> = (props) => {
+  return <button onClick={props.onClick}>{props.text}</button>
+}
+
+export default SimpleButton
+```
+
+まず親コンポーネント`HelloWorld`内で`handleOnClick`という関数を定義し、それを`SimpleButton`に渡しています。
+
+そして`SimpleButton`では、受け取った`handleOnClick`関数を`props`から取り出して、`onClick`イベントとして設置しています。
+
+この状態で「From HelloWorld」をクリックすると、ログとして「Clicked from hello_world」が出力されているはずです。
+
+![](https://storage.googleapis.com/zenn-user-upload/f622efd0fe2a-20230628.png)
+
+このようにして、変数や関数を親コンポーネントから子コンポーネントへ渡すことで、同じコンポーネントを複数の場面で再利用することができるようになります。ここをうまく設計して必要最低限のコンポーネントでアプリケーションを組み立てられるようになるかが、フロントエンド設計者の設計力のひとつといえます。
+
+:::message
+propsで関数を受け取る場合は、`xxx: ()=> yyy`という形で型を定義します。
+
+`xxx`は関数名、`yyy`はその関数の返り値の型になります。
+
+今回の`handleOnClick`関数は、`console.log`でログを出力するだけの関数であり、明確な返り値を持たない関数であるので、空っぽを意味する`void`を型として指定しています。
+:::
+
+## Next.jsのルーティング
+
+しばらくはReactについての理解を深めていきましたが、最後のNext.jsの話を進めていきます。
+
+ここまでで、Reactの世界では、Reactコンポーネントが親子の階層構造を形成するということを話していきました。
+
+これを前提にすると、**パス /hello_world と pages/hello_world.tsx が対応している**原理が理解できるようになります。
+
+Next.jsにおいては、アプリケーションでアクセスが行われたとき、以下のような処理が行われます。
+
+1. まず`pages/_app.tsx`で実装されている`MyApp`コンポーネントが最初に呼び出される
+2. アクセスされたパスに応じて`pages`配下のReactファイルを見つけ、`MyApp`コンポーネント内の`<Component {...pageProps} />`に配置する
+
+`pages/_app.tsx`は、Next.jsにデフォルトで用意されている特別なReactファイルです。Next.jsでは、アプリケーションへのアクセスがあった際には、必ず最初にこのファイルを参照し、この中で定義されている`MyApp`コンポーネントを呼び出します。
+
+`MyApp`コンポーネントでリターンしている中身を見てみると、`<Component {...pageProps} />`というReactコンポーネントが返しています。このコンポーネントもNext.jsが用意している特殊なコンポーネントで、「アクセスされたパスに応じてコンポーネントの中身を切り替える」という性質を持っています。
+
+具体的には、`/xxx`にアクセスがあれば、`pages/xxx.tsx`を参照し、そこで定義されているReactコンポーネントを呼び出す、という流れになります。
+
+`pages/hello_world.tsx`というファイル名のReactファイルを作成した時点で自動的に`/hello_world`パスが対応するようになり、実装者はルーティングというものを特別に意識する必要がありません。これが、Next.jsの便利な点の一つといえます。
+
+ちなみに、ルートパス`/`に対応するのは`pages/index.tsx`です。これはルールとして決められているものになります。
+
+- 参考: [Next.js 日本語翻訳プロジェクト Pages](https://nextjs-ja-translation-docs.vercel.app/docs/basic-features/pages)
+
+ただし、`MyApp`も`HelloWorld`も`SimpleButton`も、Next.jsの世界の中では役割の異なるものではありますが、それら単体ではひとつのReactコンポーネントにすぎないです。
+
+「Reactコンポーネントごとの役割を規約として与えることでReactアプリの開発を効率化する」というのが、WebフレームワークであるNext.jsの目的ともいうことができるでしょう。
+
+## 補足: `NextPage`型と`React.FC`型
+
+最後に、話をスキップしていた、`NextPage`型と`React.FC`型の違いを説明します。
+
+まず`React.FC`は、Reactの関数コンポーネントであることを定義づけるための型になります。この型はReactの世界に存在するものであるので、Next.js以外のReactアプリにおいても登場し得ます。
+
+一方、`NextPage`は、Reactの関数コンポーネントのうち、特にNext.jsのページとしての役割を持ったコンポーネントであることを定義づける型になります。基本的な中身は`React.FC`と同じなのですが、Next.jsのページレンダリング制御に関わるメソッドを利用できるようになります。
+
+- getInitialProps
+- getStaticProps
+- getServerSideProps
+
+しかし、はっきり言ってこれらのメソッドを正確に使いこなすためには、ある程度Next.jsの経験を積む必要がありますので、ここで理解をする必要はありません。少なくとも、
+
+- pages配下のReactコンポーネント: `NextPage`型
+- それ以外（例えばcomponents配下のReactコンポーネント）: `React.FC`型
+
+というふうに使い分けていければ、当面は問題ないかと思います。
+
+:::message
+本来は、上記のようなページレンダリング制御をメソッドひとつで自在に制御できるという点が Next.js が技術的に新しいとされている目玉トピックスになります。「Next.jsとは？」で調べると、このあたりの話題を取り上げている記事が多くヒットします。
+
+しかし、そもそもJavascript自体にあまり慣れていない学習度の人からすると、その話題は数段先のレベルの話であるので、この教材では思い切って割愛し、あまり触れないように進めていきます。
+:::

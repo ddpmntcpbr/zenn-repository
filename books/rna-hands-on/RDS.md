@@ -1,0 +1,150 @@
+## この章でやること
+
+AWS RDS を用いて、プライベートサブネット内のMySQLデータベース環境を構築します。
+
+## RDSとは？
+
+RDS(Relational Database Service)とは、AWSが提供するデータベース構築サービスです。
+
+今回の開発アプリについて、開発環境においては MySQL の docker イメージに基づいたコンテナとしてデータベースを用意していました（docker-compose.ymlで`db`コンテナとして定義されている）。
+
+本番環境においては、これに相当するものとして、プライベートサブネット内に RDS が提供する MySQL サーバーを構築し、これを Rails から利用できるようにしていきます。RDS
+
+## 手順
+
+### RDS用サブネットグループを作成
+
+RDSを作成する前に、RDS用のサブネットグループを作成します。
+
+サブネットグループとはその名の通り、作成した複数のサブネットをまとめてグループの概念を形成し、グループの単位何らかの機能や役割を付与するものになります。ここでは、作成済みの二つのプライベートサブネットをグループ化し、そのグループに対してRDSからの接続を行います。
+
+検索窓から「Amazon RDS > サブネットグループ」にアクセスし、「DBサブネットグループを作成」を押下します。
+
+![](https://storage.googleapis.com/zenn-user-upload/92addeca835a-20230515.png)
+
+↓
+
+以下項目を設定して、「作成」します。
+
+#### サブネットグループの詳細
+
+|項目|値|
+|---|---|
+|名前|zenn-clone-rds-subnet-group|
+|説明|任意|
+|VPC|zenn-clone-vpcを選択|
+
+![](https://storage.googleapis.com/zenn-user-upload/91435f483197-20230515.png)
+
+#### サブネットを追加
+
+|項目|値|
+|---|---|
+|アベイラビリティーゾーン|ap-northeast-1a, ap-northeast-1c|
+|サブネット|作成したプライベートサブネット2つを選択|
+
+![](https://storage.googleapis.com/zenn-user-upload/afdc0e1ee202-20230515.png)
+
+↓
+
+サブネットグループが正常に作成されたらOKです。
+
+![](https://storage.googleapis.com/zenn-user-upload/6d26f0c0dc29-20230515.png)
+
+### RDSでデータベースを作成
+
+サイドバーから「データベース」アクセスし、「データベースの作成」を押下します。
+
+![](https://storage.googleapis.com/zenn-user-upload/c4bddc0e4d70-20230516.png)
+
+↓
+
+
+以下項目を設定して、「作成」します。
+
+#### データベース作成方法を選択
+
+|項目|値|
+|---|---|
+|データベース作成方法を選択|標準作成を選択|
+|エンジンのオプション|MySQL|
+|エンジンバージョン|MySQL 8.0.32|
+|テンプレート|無料利用枠|
+
+![](https://storage.googleapis.com/zenn-user-upload/413e85237d92-20230516.png)
+
+![](https://storage.googleapis.com/zenn-user-upload/4e288806d36b-20230516.png)
+
+#### テンプレート
+
+|項目|値|
+|---|---|
+|テンプレート|無料利用枠|
+
+![](https://storage.googleapis.com/zenn-user-upload/017f2d89f1ee-20230516.png)
+
+#### 可用性と耐久性
+
+デフォルトでOK（テンプレートが無料利用枠の場合は設定変更不可）。
+
+![](https://storage.googleapis.com/zenn-user-upload/421836f4fce3-20230516.png)
+
+#### 設定
+
+|項目|値|
+|---|---|
+|DB インスタンス識別子|zenn-clone-db|
+|マスターユーザー名|admin|
+|マスターパスワード|任意で設定|
+|マスターパスワードの確認|マスターパスワードと同じ値を設定|
+
+![](https://storage.googleapis.com/zenn-user-upload/955fbd11b963-20230516.png)
+
+**設定したマスターパスワードを後から確認することはできないので、必ず別の場所に控えておいてください。**
+
+#### インスタンスの設定
+
+|項目|値|
+|---|---|
+|インスタンスの設定|db.t3.micro|
+
+![](https://storage.googleapis.com/zenn-user-upload/dd7d738fe6bc-20230516.png)
+
+#### ストレージ
+
+デフォルトでOK。
+
+![](https://storage.googleapis.com/zenn-user-upload/3d8295af8baa-20230516.png)
+
+#### 接続
+
+|項目|値|
+|---|---|
+|コンピューティングリソース|EC2コンピューティングリソースに接続しない|
+|ネットワークタイプ|IPv4|
+|VPC|zenn-clone-vpc|
+|DB サブネットグループ|zenn-clone-rds-subnet-group|
+|パブリックアクセス|なし|
+|VPCセキュリティグループ|既存の選択|
+|既存の VPC セキュリティグループ|zenn-clone-rds-security-group|
+|アベイラビリティーゾーン|指定なし|
+
+![](https://storage.googleapis.com/zenn-user-upload/32ad62e00706-20230817.png)
+
+![](https://storage.googleapis.com/zenn-user-upload/f4c99cd9ba6f-20230817.png)
+
+![](https://storage.googleapis.com/zenn-user-upload/8b5d544eb674-20230817.png)
+
+#### データベース認証
+
+|項目|値|
+|---|---|
+|データベース認証オプション|パスワード認証|
+
+![](https://storage.googleapis.com/zenn-user-upload/4345f08912ef-20230516.png)
+
+↓
+
+作成からしばらく経過後、ステータスが「作成中→利用可能」に変わったらOKです！
+
+![](https://storage.googleapis.com/zenn-user-upload/b7e34ec59523-20230516.png)

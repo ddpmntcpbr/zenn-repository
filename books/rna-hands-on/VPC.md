@@ -1,0 +1,38 @@
+## この章でやること
+
+アプリケーションをデプロイするVPCを作成します。
+
+## VPCとは？
+
+VPC（Virtual Private Cloud）とは、AWSクラウド内にプライペートな仮想環境を構築するためのサービスです。
+
+イメージとしては、AWSが全世界向けの提供している広大な土地（クラウド）のうち、一部を自分の土地として申請しているような感じです。
+
+今後、この自分のものとなった土地の中に、オリジナルの家を建てていく（アプリをデプロイする）ことになります。
+
+## 手順
+
+検索窓からVPCにアクセスし、「VPCを作成」を押下します。
+
+![](https://storage.googleapis.com/zenn-user-upload/e60f75f03cf6-20230514.png)
+
+↓
+
+以下項目を設定し、「VPCを作成」します。
+
+|項目|値|
+|---|---|
+|作成するリソース|VPCのみ|
+|名前タグ|zenn-clone-vpc|
+|IPv4 CIDR ブロック|IPv4 CIDR の手動入力|
+|IPv4 CIDR|10.0.0.0/16|
+|IPv6 CIDR ブロック|IPv6 CIDR ブロックなし|
+|テナンシー|デフォルト|
+
+![](https://storage.googleapis.com/zenn-user-upload/8b27696b4725-20230514.png)
+
+↓
+
+VPCが正常に作成されればOKです。
+
+![](https://storage.googleapis.com/zenn-user-upload/32a672e4cd8a-20230514.png)

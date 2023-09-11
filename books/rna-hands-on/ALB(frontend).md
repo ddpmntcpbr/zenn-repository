@@ -1,0 +1,171 @@
+## この章でやること
+
+frontendに関しても独自ドメインでアクセスができるように、frontend用のALBを作成します。
+
+## 　流れ
+
+ALB(backend)のときと同様に、以下の手順で進めていきます。
+
+- ALB(frontend)用のセキュリティグループを作成
+- ALB(frontend)用のターゲットグループを作成
+- ALB(frontend)を作成
+
+## 手順
+
+### ALB(frontend)用のセキュリティグループを作成
+
+ALB本体を作成する前に、ALB用のセキュリティグループを作成します。
+
+「VPC > セキュリティグループ」にアクセスし、「セキュリティグループを作成」を押下します。
+
+![](https://storage.googleapis.com/zenn-user-upload/5fb19a08ec9a-20230531.png)
+
+↓
+
+#### 基本的な詳細
+
+|項目|値|
+|---|---|
+|セキュリティグループ名|zenn-clone-alb-frontend-security-group|
+|説明|任意|
+|VPC|zenn-clone-vpc|
+
+![](https://storage.googleapis.com/zenn-user-upload/3b20099e5e88-20230531.png)
+
+#### インバウンドルール
+
+外部から入ってくるトラフィックのうち、アクセス許可する範囲を定義します。ここでは、任意のHTTP、HTTPS通信を全て許可します。
+
+|タイプ|ソース|
+|---|---|
+|HTTP|Anywhere-IPv4(0.0.0.0/0)|
+|HTTP|Anywhere-IPv6(::/0)|
+|HTTPS|Anywhere-IPv4(0.0.0.0/0)|
+|HTTPS|Anywhere-IPv6(::/0)|
+
+![](https://storage.googleapis.com/zenn-user-upload/3cabda2bd0da-20230531.png)
+
+#### アウトバウンドルール
+
+ECS(frontend)へトラフィックを送信できるように設定します。
+
+|タイプ|送信先|
+|---|---|
+|HTTP|カスタム > zenn-clone-ecs-backend-security-group|
+
+![](https://storage.googleapis.com/zenn-user-upload/eb36bd77c3bc-20230531.png)
+
+↓
+
+「セキュリティグループを作成」を押下します。
+
+![](https://storage.googleapis.com/zenn-user-upload/ecb6b08180db-20230531.png)
+
+### ALB(frontend)用のターゲットグループの作成
+
+検索窓から「EC2 > ターゲットグループ」に入り、「ターゲットグループの作成」を押下します。
+
+![](https://storage.googleapis.com/zenn-user-upload/ac270b11dedb-20230821.png)
+
+↓
+
+|項目|値|
+|---|---|
+|基本的な設定|IPアドレス|
+|ターゲットグループ名|zenn-clone-alb-frontend-tg|
+|プロトコル|HTTP|
+|ポート|80|
+|IPアドレスタイプ|IPv4|
+|VPC|zenn-clone-vpc|
+|プロトコルバージョン|HTTP1|
+|ヘルスチェックプロトコル|HTTP|
+|ヘルスチェックパス|/api/health_check|
+
+![](https://storage.googleapis.com/zenn-user-upload/1620a14c3b51-20230821.png)
+
+![](https://storage.googleapis.com/zenn-user-upload/4ffa0a99d83d-20230821.png)
+
+![](https://storage.googleapis.com/zenn-user-upload/af45f59f416f-20230821.png)
+
+![](https://storage.googleapis.com/zenn-user-upload/58b21a8ee5a1-20230821.png)
+
+↓
+
+入力が完了したら「次へ」ボタンを押してください。次ページの「ターゲットの登録」に関してはデフォルトのまま、「ターゲットグループの作成」を押してください。
+
+![](https://storage.googleapis.com/zenn-user-upload/695015d559d4-20230821.png)
+
+![](https://storage.googleapis.com/zenn-user-upload/f8884193c940-20230821.png)
+
+![](https://storage.googleapis.com/zenn-user-upload/fa78e74b5521-20230821.png)
+
+### ALB(frontend)の作成
+
+検索窓から「EC2 > ロードバランサー」に入り、「ロードバランサーの作成」を押下します。
+
+![](https://storage.googleapis.com/zenn-user-upload/af7017e2bfa8-20230821.png)
+
+↓
+
+ロードバランサーの種類として「Application Load Balancer」を選択します。
+
+![](https://storage.googleapis.com/zenn-user-upload/64d441dd56f6-20230821.png)
+
+↓
+
+#### 基本的な設定
+
+|項目|値|
+|---|---|
+|名前|zenn-clone-alb-frontend|
+|スキーム|インターネット向け|
+|IP アドレスタイプ|ipv4|
+
+![](https://storage.googleapis.com/zenn-user-upload/bb52e81a28cb-20230821.png)
+
+#### ネットワークマッピング
+
+|項目|値|
+|---|---|
+|VPC|zenn-clone-vpc|
+|マッピング|ap-northeast-1a, ap-northeast-1c, それぞれのパブリックサブネットを選択|
+
+![](https://storage.googleapis.com/zenn-user-upload/e3e60080d63b-20230821.png)
+
+![](https://storage.googleapis.com/zenn-user-upload/58ae2d5cad61-20230821.png)
+
+#### セキュリティグループ
+
+|項目|値|
+|---|---|
+|セキュリティグループ|zenn-clone-alb-security-group|
+
+![](https://storage.googleapis.com/zenn-user-upload/970263069d04-20230821.png)
+
+#### リスナーとルーティング
+
+「リスナーの追加」ボタンで、リスナーを二つ登録します。
+
+|プロトコル|ポート|デフォルトアクション|
+|---|---|---|
+|HTTP|80|zenn-clone-alb-frontend-tg|
+|HTTPS|443|zenn-clone-alb-frontend-tg|
+
+![](https://storage.googleapis.com/zenn-user-upload/43402d77768a-20230821.png)
+
+![](https://storage.googleapis.com/zenn-user-upload/4e1a9112d723-20230821.png)
+
+#### リスナーとルーティング > セキュアリスナーの設定
+
+|項目|値|
+|---|---|
+|セキュリティポリシー|推奨のポリシーを選択|
+|デフォルトの SSL/TLS 証明書|ACMから > 取得したドメインを選択|
+
+![](https://storage.googleapis.com/zenn-user-upload/fe035cebbf0c-20230821.png)
+
+↓
+
+入力が完了したら、「ロードバランサーの作成」ボタンを押してください。正常に作成が完了したらOKです！
+
+![](https://storage.googleapis.com/zenn-user-upload/a6f744d3f8d5-20230821.png)

@@ -1,0 +1,82 @@
+## この章でやること
+
+frontendのイメージをECRにプッシュします。
+
+## 手順
+
+検索窓から「Elastic Container Registry > Repositries」に入り、「リポジトリを作成」を押下します。
+
+![](https://storage.googleapis.com/zenn-user-upload/bc2f332ce08b-20230528.png)
+
+↓
+
+以下項目を入力して、「リポジトリを作成」を押下します。
+
+|項目|値|
+|---|---|
+|可視性設定|プライベート|
+|リポジトリ名|zenn-clone-next|
+
+![](https://storage.googleapis.com/zenn-user-upload/e3abc2f70a96-20230528.png)
+
+↓
+
+リポジトリが作成できてたら、リポジトリの詳細画面に入り、「プッシュコマンドの表示」を押下します。
+
+![](https://storage.googleapis.com/zenn-user-upload/b8c32d9f79d6-20230528.png)
+
+![](https://storage.googleapis.com/zenn-user-upload/2e4251e1c317-20230528.png)
+
+↓
+
+こちらのコマンドを手元のターミナルで実行していきますが、一部今回の設定に合わせて微修正が必要です。
+
+#### 1. 認証トークンを取得し、レジストリに対して Docker クライアントを認証します。
+
+表示されているコマンドをコピペして実行します。
+
+ログインが正常に完了すると、ターミナル上で`Login Succeeded`と表示されます。
+
+#### 2. 以下のコマンドを使用して、Docker イメージを構築します。一から Docker ファイルを構築する方法については、「こちらをクリック 」の手順を参照してください。既にイメージが構築されている場合は、このステップをスキップします。
+
+Dockerfileのファイル名および相対パスの位置に合わせてコマンドを修正し、アプリのトップの位置で実行します。
+
+```sh:ホストOS(./)
+docker build -t zenn-clone-next -f ./next/Dockerfile.prod ./next
+```
+
+狙いのイメージが作成されていることを確認します。
+
+```sh:ホストOS
+docker images
+```
+
+```
+REPOSITORY        TAG       IMAGE ID       CREATED         SIZE
+zenn-clone-next   latest    fb9997651f03   3 minutes ago   921MB
+```
+
+#### 3. 構築が完了したら、このリポジトリにイメージをプッシュできるように、イメージにタグを付けます。
+
+表示されているコマンドをコピペして実行します。
+
+イメージに対して狙いのタグが付与されていることを確認します。
+
+```sh:ホストOS
+docker images
+```
+
+```
+REPOSITORY                                                           TAG       IMAGE ID       CREATED         SIZE
+297087675121.dkr.ecr.ap-northeast-1.amazonaws.com/zenn-clone-next   latest    fb9997651f03   3 minutes ago   921MB
+.
+.
+```
+
+#### 4. 以下のコマンドを実行して、新しく作成した AWS リポジトリにこのイメージをプッシュします
+
+表示されているコマンドをコピペして実行します。
+
+ECRにnextのイメージがプッシュされていればOKです！
+
+![](https://storage.googleapis.com/zenn-user-upload/8cc7a579e5a5-20230528.png)

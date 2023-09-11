@@ -1,0 +1,218 @@
+## この章でやること
+
+frontendのECRイメージプッシュの事前準備として、　コードの修正を行います。
+
+## 本番環境でのfrontend構成
+
+frontendにおいても、開発環境（＋テスト環境）と本番環境では、いくつかの設定を適切に切り替える必要があります。まとめると以下の点に違いがあります。
+
+|項目|開発環境|本番環境|
+|---|---|----|
+|環境変数|next/.env.development を参照|next/.env.production を参照|
+|ポート番号|3000番ポートを使用|80番ポートを使用|
+|Dockerfile|next/Dockerfile|next/Dockerfile.prod|
+
+## 手順
+
+### 環境変数
+
+開発環境における環境変数は`next/.env.development`で管理されていましたが、これの本番環境バージョンに相当するものを用意してあげます。
+
+```:next/.env.production
+NEXT_PUBLIC_API_BASE_URL=https://backend.rails-next-zenn-clone-app.com/api/v1
+NEXT_PUBLIC_FRONT_BASE_URL=https://rails-next-zenn-clone-app.com
+```
+
+`rails-next-zenn-clone-app.com`の部分は、読者各々がRoute53で取得したドメイン文字列に置き換えてください。
+
+また、当ファイルは外部漏らしたくない情報（特にAPI側のURLは第三者が知る必要がない）となるので、git管理外にしてしまいます。
+
+```diff :next/.gitignore
+  .
+  .
++ .env.production
+```
+
+
+### ポート番号
+
+Next.jsサーバーを起動すると、デフォルトでは3000番ポートを利用する設定になっています（開発環境においては、`http://localhost:3000`でアクセスできる）
+
+ただし、本番環境ではポート指定無しでNext.jsにアクセスできるようにしたいので、80番ポートでアクセスできるようにサーバー起動コマンドを修正します。
+
+```diff json:next/package.json
+  {
+    .
+    .
+    "scripts": {
+      "dev": "next dev",
+      "build": "next build",
+-     "start": "next start",
++     "start": "next start -p 80",
+      "lint": "next lint --dir src",
+      "format": "next lint --fix --dir src"
+    },
+    .
+    .
+  }
+```
+
+### Dockerfile
+
+Next.jsにおいても、本番環境用のDockerfileを用意します。`next/Dockerfile.prod`を以下のように実装してください。
+
+```dockerfile:next/Dockerfile.prod
+# --- Build Stage ---
+FROM node:19.4.0 AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json before other files
+# Utilize Docker cache to save re-installing dependencies if unchanged
+COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy all files
+COPY . .
+
+# Build the Next.js app
+RUN npm run build
+
+# --- Run Stage ---
+FROM node:19.4.0-alpine
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the build output from the previous stage
+COPY --from=builder /app/next.config.js ./next.config.js
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/.env.production ./.env.production
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/package-lock.json ./package-lock.json
+
+# Set the environment variable for Next.js
+ENV NODE_ENV production
+
+# Expose the port the app runs on
+EXPOSE 80
+
+# Command to run the application
+CMD ["npm", "run", "start"]
+```
+
+少し流れを丁寧に追ってみます。
+
+Dockerfile.prodは、**ビルドステージ（Build Stage）** と、 **実行ステージ(Run Stage)** の2段階から構成されています。
+
+↓
+
+ビルドステージではその名の通り、Next.jsアプリの**ビルド**を行っています。
+
+```dockerfile
+# --- Build Stage ---
+FROM node:19.4.0 AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json before other files
+# Utilize Docker cache to save re-installing dependencies if unchanged
+COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy all files
+COPY . .
+
+# Build the Next.js app
+RUN npm run build
+```
+
+`next/Dockerfile`と同様にnodeイメージのダウンロードと作業ディレクトリの作成を行った後、`package.json`と`package-lock.json`の2ファイルだけを先にホストからコンテナ内にコピーしています。
+
+その後、`$ npm ci`を実行し、npmライブラリのインストールを行っています。`$ npm ci`は`package-lock.json`からインストールするnpmライブラリのバージョンを決定するコマンドです。
+
+https://new-lamp.hatenablog.com/entry/2021/10/23/102630
+
+npmライブラリのインストールが完了したらその他ファイルも全てコンテナ内にコピーし、最後に`$ npm run build`コマンドを実行しています。当コマンドの実行内容は、`package.json`を確認すると分かります。
+
+```json:
+  "scripts": {
+    .
+    .
+    "build": "next build",
+    .
+    .
+  },
+```
+
+要するに、Next.jsアプリの**ビルド**を行っています。ビルドというのは、**開発環境のソースコードを本番環境向けに最適化したバージョンに変換する行為**、であると表現できます。
+
+最適化の具体的な内容はいくつかあるのですが、一番分かりやすいのが**ファイル圧縮による処理の高速化**です。開発環境のソースコードとしては複数ファイルに分割管理されていた Javascript/CSS ファイルを、ひとつの Javascript/CSSファイル に圧縮してパフォーマンスを上げる、といった処理がビルドによって行われます。
+
+Next.jsにおいては、ビルドした結果のソースコードは`.next`ディレクトリ内に格納されることになっています。ビルドした結果がどのようなファイルになっているか気になる方は、実際に開発環境のnextコンテナ内で`$ npm rub build`を実行してみてください。
+
+↓
+
+実行ステージでは、ビルドステージでビルドされたNext.jsファイルに基づいてnpmサーバーを起動する一連の処理が記述されています。
+
+```dockerfile
+# --- Run Stage ---
+FROM node:19.4.0-alpine
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the build output from the previous stage
+COPY --from=builder /app/next.config.js ./next.config.js
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/.env.production ./.env.production
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/package-lock.json ./package-lock.json
+
+# Set the environment variable for Next.js
+ENV NODE_ENV production
+
+# Expose the port the app runs on
+EXPOSE 80
+
+# Command to run the application
+CMD ["npm", "run", "start"]
+```
+
+冒頭でのnodeイメージのダウンロードと作業ディレクトリの作成は、ビルドステージと共通です。ただし、本番環境でのパフォーマンスを最大化するため、nodeイメージとしてはより軽量な`node:19.4.0-alpine`を採用しています。
+
+その後、`COPY --from=builder`で、ビルドステージ側から本番環境で必要となるファイルをコピーして持ってきています。
+
+開発環境ではコンテナポートは3000番(`EXPOSE 3000`)でしたが、本番環境ではポート指定無しでアクセスできるようにしたいので、コンテナポートを80番(`EXPOSE 80`)としてます。
+
+最後に、`CMD ["npm", "run", "start"]`で、コンテナ起動時に`$ npm start`が実行されるようになっています。このコマンドで実行される内容は、先ほど`package.json`で修正を行なったコマンドになります。
+
+```json:
+  "scripts": {
+    .
+    .
+    "start": "next start -p 80",
+    .
+    .
+  },
+```
+
+**ビルドされたソースコードに基づいて Next サーバーを80番ポートで起動する**、という意味になります（開発環境で使用していた`$ npm run dev`というコマンドは、ビルドされていない元の状態のソースコードに基づいて Next サーバーを起動するコマンド、という違いがあります。）
+
+これにより、AWS ECSでコンテナ起動したタイミングで当コマンドが実行され、Next サーバーが起動してアクセスができるようになる、という流れになります。
+
+:::message
+ビルドと実行の2ステージでdockerfileを構成するやり方は**マルチステージビルド**と呼ばれるもので、Next.jsに含めた多くのフロントエンドフレームワークの本番デプロイ時に採用されるものです。
+
+最終的にコンテナ内に残るのは**実行ステージ側のイメージのみ**となり、イメージを軽量化することができるので、パフォーマンスの向上が期待できます
+:::

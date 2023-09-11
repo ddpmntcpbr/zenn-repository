@@ -1,0 +1,233 @@
+## この章でやること
+
+GithubActionを用いた、CI/CDパイプラインを構築します。
+
+## GithubAction とは？
+
+Githubが公式で提供している、CI/CDツールです。
+
+ - CI(Continuous Integration): 継続的インテグレーション
+ - CD(Continuous Deployment):継続的デプロイメント
+
+もうちょっと噛み砕いて説明すると、例えばGithub上で以下のような処理を自動で行ってくれます。
+
+### 1. ローカルから push されたブランチに対して、自動でテストおよびLintツールを実行する
+
+継続的インテグレーションの具体例です。
+
+ローカルで開発を行ったブランチを push したとき、テスト（今回は`rspec`）やLintツール（今回は`rubocop`と`ESLint&Prettier`）による検証を Github 上で行ってくれます。もしここで検証エラーになっている箇所がある場合に警告を出してくれるようになります。
+
+システムの規模がある程度大きくなってくると、開発機能が意図していなかった別機能に影響を及ぼしてしまうケースがあります。テストを自動でまわしてくれることで、そのようなインシデントを未然に防ぐことができ、常にテストのオールグリーンを担保できます。
+
+あるいは、せっかくLintツールを導入しても、修正をかけ忘れるようなこともあると問題になってしまうので、Lintツールの検証を自動でまわしてくれることで、Lintルールの遵守を維持することができます（※あくまで自動で行うのは検証のみで、コードの修正自体はローカルで行って再度 push する形になります）。
+
+また、当教材では git ブランチ戦略は特に踏み込みませんが、通常のチーム開発であれば、mainブランチとは別のブランチを切って開発を行い、 Pull Request によるコードレビューを踏まえた上で最終的に main ブランチにマージさせていきます。
+
+このとき「GithubActionでの設定項目が全てOKでない限りは、mainブランチにマージできない」といった設定を行うことも可能で、mainブランチの品質を継続的に維持することができます。
+
+### 2. main ブランチに変更が生じた際、自動的に main ブランチを本番環境に再デプロイする
+
+継続的デプロイメントの具体例です。
+
+例えば、すでに main ブランチの内容を本番環境（AWS, GCP, Heroku何でもよい）にデプロイしており、一般にサービスとして利用できる形になっているとします。
+
+このとき mainブランチに加えた何らかの変更を本番環境に反映させたい場合、変更都度再デプロイ作業を行わないといけません。
+
+これを毎回手作業で行うのはしんどいのですが、GithubActionを活用すると「mainブランチの変更が生じた」ことをトリガーとして、mainブランチを自動で本番環境に再デプロイしてもらうことができます。
+
+デプロイのたびにインフラ周りの手作業を行う必要がなく、エンジニアは開発に集中することができるようになって大変便利です。
+
+### CircleCIとの違い
+
+数年前まではCI/CDパイプライン構築のデファクトスタンダード技術は`CircleCI`でしたが、最近は徐々にGithubActionに移りかわってきている印象です。
+
+githubでリポジトリ管理をしている場合であれば、設定も簡単にでき、料金も無料で利用できる点がメリットとして大きいためかなと思います。
+
+開発現場によっては CircleCI を使い続けているところも多い（移行作業を行うコストやリソース確保に壁があるケースもある）のですが、いずれにせよ、どちらかのCI/CDツールはほぼ必ずと言っていいほど使われているかと思います。
+
+## 参考記事
+
+- [RailsにGitHub Actionsの導入（Rspec, Rubocop）](https://zenn.dev/ryouzi/articles/cd6857c08e60e7)
+- [
+[React] GitHub ActionsでPrettierとESLintを使う方法](https://dev-yakuza.posstree.com/react/github-actions/prettier-eslint/)
+
+## 手順
+
+ここでは、以下の3つのCIルールを定義します。
+
+1. `rspec`
+2. `rubocop`
+3. `eslint`（`prettier`による検証を含む）
+
+CDルールについては、本番環境へのデプロイを行った後で追加していく予定です。
+
+↓
+
+アプリルートに`.github/workflows`ディレクトリを作成し、その配下に`github-action.yml`ファイルを作成してください。
+
+```yml:.github/workflows/github-action.yml
+name: ci
+
+# GithubActionの実行タイミング
+# ブランチの push 時と pull resuest 作成時
+on:
+  push:
+  pull_request:
+
+# GithubActionが行う処理
+jobs:
+  # GithubActionが行う処理① rspec
+  rspec:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rails
+    services:
+      mysql:
+        image: mysql:8.0.32
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        options: --health-cmd "mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1.2
+          bundler-cache: true
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Bundler and gem install
+        run: |
+          gem install bundler
+          bundle install --jobs 4 --retry 3 --path vendor/bundle
+
+      - name: Database create and migrate
+        run: |
+          cp config/database.yml.ci config/database.yml
+          bundle exec rails db:create RAILS_ENV=test
+          bundle exec rails db:migrate RAILS_ENV=test
+
+      - name: Run rspec
+        run: bundle exec rspec
+
+  # GithubActionが行う処理② rubocop
+  rubocop:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rails
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1.2
+          bundler-cache: true
+
+      - name: Bundler and gem install
+        run: |
+          gem install bundler
+          bundle install --jobs 4 --retry 3 --path vendor/bundle
+
+      - name: Run rubocop
+        run: bundle exec rubocop
+
+  # GithubActionが行う処理③ eslint
+  eslint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: next
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install packages
+        run: npm install
+
+      - name: Run lint
+        run: npm run lint
+```
+
+#### 補足
+
+`github-action.yml`で定義している内容をざっくりと説明します。
+
+まず、`jobs`が、GithubActionで具体的の行う処理です。今回は、
+
+1. `rspec`
+2. `rubocop`
+3. `eslint`
+
+の3つのジョブを定義しています。
+
+それぞれのジョブの中身を見てみると、`runs-on`、`defaults`、`steps`の3つの設定からなっていることが分かります。
+
+- `runs-on`: ジョブを遂行するためのベースとなる環境を定義。ここで設定した docker イメージを pull し、GithubAction上で docker コンテナをビルドしてジョブを遂行する。
+- `defaults`: デフォルトの設定。今回は、対象ディレクトリの設定（`rails` or `next`）のみを行っています。
+- `steps`: ジョブとして具体的に行う処理。ここに記載したコマンドを上から順番に実行していくイメージ。
+
+`steps`の前半で色々と事前準備を行い、最後の run で肝心の実行処理（テストやLintの実行）を行っています。
+
+↓
+
+続いて、GithubAction上で rspec を実行するために、CI環境でのデータベースに関する定義ファイルである`rails/config/database.yml.ci`を作成してください。
+
+```ci:rails/config/database.yml.ci
+test:
+  adapter: mysql2
+  encoding: utf8
+  username: root
+  password:
+  host: 127.0.0.1
+  database: myapp_test
+```
+
+↓
+
+以上の差分を含めて、ソースコードをリポジトリに push してください（以下のコマンドは一例です）。
+
+```sh:/
+git add -A
+```
+
+```sh:/
+git commit -m 'GithubActionの設定ファイルを追加'
+```
+
+```sh:/
+git push origin HEAD
+```
+
+↓
+
+github の該当リポジトリのページに入り、メニューバーの`Actions`に入ると、GithubActionが動作していることが確認できます。
+
+![](https://storage.googleapis.com/zenn-user-upload/3056bd300bbf-20230618.png)
+
+![](https://storage.googleapis.com/zenn-user-upload/cbe3c5db7c6b-20230618.png)
+
+↓
+
+時間が経過し、全ての処理がグリーンで通ることが確認できればOKです！
+
+![](https://storage.googleapis.com/zenn-user-upload/6f0a3321e808-20230618.png)
+
+もし、どれかのジョブで違反が顕出された場合は、各ジョブをクリックすることでログを確認できる画面に入れるので、そこからトラブルシューティングを行ってください。
+
+![](https://storage.googleapis.com/zenn-user-upload/4c7acfadf7b7-20230618.png)
