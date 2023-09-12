@@ -29,7 +29,7 @@ summary: "本書は「本気で実務未経験からエンジニアに転職し�
 以下のレベルの学習を終えている、実務未経験の駆け出しエンジニアor経験浅のジュニアエンジニアを想定しています。\n
 \n
 - Railsチュートリアルを完走している\n
-- ProgateのReact講座を学習している\n
+- ProgateのJavascript講座を学習している\n
 - Dockerを触ったことがある\n"
 topics: ["rails", "next.js", "aws", "駆け出しエンジニアと繋がりたい"] # トピック（5つまで）
 published: false
