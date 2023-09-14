@@ -2,8 +2,8 @@
 title: "「Rails API とは？普通の Rails と何が違うの？」と思った人がまず読む記事"
 emoji: "🐑"
 type: "tech"
-topics: ["rails", "react", "vue", "初心者"]
-published: false
+topics: ["rails", "初心者"]
+published: true
 ---
 
 ## この記事は？
@@ -184,3 +184,9 @@ Rails を採用している企業の多くが、フロントエンドとして R
 書籍では「実務未経験者」を主な対象読者として掲げておりますが、**通常のRailsアプリに関する実務経験しか積んでいない**というジュニアレベルのエンジニアにとっても学びのある内容となっていると思います。
 
 ご興味のある方は、この機会にぜひ手にとっていただけたらと思います。
+
+## 参考
+
+フロントエンド技術の歴史についてより詳細に知りたい方は、以下の書籍がオススメです。
+
+https://www.amazon.co.jp/TypeScript%E3%81%A8React-Next-js%E3%81%A7%E3%81%A4%E3%81%8F%E3%82%8B%E5%AE%9F%E8%B7%B5Web%E3%82%A2%E3%83%97%E3%83%AA%E3%82%B1%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E9%96%8B%E7%99%BA-%E6%89%8B%E5%B3%B6-%E6%8B%93%E4%B9%9F/dp/4297129167/ref=tmm_pap_swatch_0?_encoding=UTF8&qid=&sr=
