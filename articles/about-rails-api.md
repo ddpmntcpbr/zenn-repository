@@ -6,6 +6,8 @@ topics: ["rails", "初心者"]
 published: true
 ---
 
+![](https://storage.googleapis.com/zenn-user-upload/c8f5bbc5d8af-20230914.png)
+
 ## この記事は？
 
 Ruby on Rails における**APIモード**がどのようなものであるのかについて、Webエンジニア初学者向けの解説した記事です。
