@@ -20,7 +20,7 @@ https://railstutorial.jp/reading_guide#next-frontend\n
 - Rails API モードによるバックエンド実装\n
 - Next.js + Typescript によるフロントエンド実装\n
 - AWS ECS Fargate へのコンテナデプロイ\n
-- Github Actions によるCICDパイプラインの構築\n
+- GitHub Actions によるCICDパイプラインの構築\n
 \n
 「実務未経験者でもサクっとできるアプリの開発」ではなく「実際の開発現場で採用されているモダンな技術スタックを備えた本格的なアプリの開発」に焦点をあてています。\n
 \n
