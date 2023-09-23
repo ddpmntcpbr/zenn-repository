@@ -6,13 +6,13 @@ topics: ["初心者"]
 published: false
 ---
 
-![](https://storage.googleapis.com/zenn-user-upload/ef0dfbddfcb3-20230923.png)
-
 ## この記事は？
 
 早速ですが、皆さんに質問です。
 
 「**買ってはみたものの、最後までやり切れていない技術書**、本棚に何冊積んでありますか？」
+
+![](https://storage.googleapis.com/zenn-user-upload/97fade8e562e-20230923.jpg)
 
 はい、ドキッとした人も多いと思います。私もドキドキしながら書いています。
 
