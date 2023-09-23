@@ -177,9 +177,13 @@ Rails におけるAPIモードとは、「**React.js や Vue.js のような他�
 
 ここまで記事を読んでいただいた読者であれば、この文章の意味が分かるようになっているのではないでしょうか？
 
-## 宣伝
+## さいごに
 
-zenn上に、RailsAPI+Next.jsの構成でアプリを開発するチュートリアル本をリリースしています。
+最後まで記事を読んでいただきありがとうございました！。
+
+もしよろしければ、記事の**いいね***、または**Twitter(X)**でのリアクションやアカウントフォロー([@ddpmntcpbr](https://twitter.com/ddpmntcpbr))をお願いします🙏！
+
+最後に宣伝です。zenn上に、RailsAPI+Next.jsの構成でアプリを開発するチュートリアル本をリリースしています。
 
 https://zenn.dev/ddpmntcpbr/books/rna-hands-on
 
