@@ -1,10 +1,40 @@
 ---
-title: "Railsアプリを無料で公開しよう！Render + PlanetScale デプロイ手順"
+title: "【完全無料】Railsアプリを無料で公開しよう！Render.com + PlanetScale デプロイ手順"
 emoji: "🐑"
 type: "tech"
 topics: ["rails"]
 published: false
 ---
+
+## この記事は？
+
+当記事を執筆している2023年10月現在において、開発した Ruby on Rails アプリを**完全無料**でデプロイする方法について整理したものです。
+
+## 動機
+
+以前までは、Railsアプリの無料デプロイ先としては [Heroku](https://jp.heroku.com/) が主流でした。
+
+しかし、2022年11月より Heroku の無料プランが廃止となり、最安のEcoプランでも**月5ドル**の費用が発生するようになりました（2023年10月時点）。
+
+https://jp.heroku.com/pricing
+
+企業等で本格的に運用するアプリであれば運用コストは飲み込めるかもしれませんが、特に個人開発のアプリの場合は、どうしてもコストを無料に抑えたいケースも多く存在するかと思います。
+
+- **転職用のポートフォリオ**として公開するので、高いパフォーマンスは必要ない。
+- 将来的には有料運用は想定しているが、最初の**市場検証フェーズ**では無料から始めたい。
+- **単なる趣味アプリ**でしかないので、お金がかかるなら公開はできない。
+
+そこで当記事では、 Heroku の無料プランに代わる手段として、`Render`+`PlanetScale`による無料デプロイ方法を解説していきます。
+
+## Render.com とは？
+
+Webアプリケーションの公開を含めた様々なサービスを提供する PaaS です。当記事では、**Herokuの代替サービス**くらいの粒度で認識しておいてもらえればと思います。
+
+https://render.com/
+
+Heroku で出来ることのほとんどは Render.com でも実現可能であり、
+
+https://zenn.dev/mc_chinju/articles/compare_render_and_heroku
 
 ## Railsアプリの用意
 
@@ -164,20 +194,6 @@ rails g scaffold Post body:text
 
 ```sh:webコンテナ
 rails db:migrate
-```
-
-↓
-
-テストデータを作成します。以下のように`db/seeds.rb`を作成し、`$ rails db:seed`を実行してください。
-
-```rb:db/seeds.rb
-Post.create(body: "test1")
-Post.create(body: "test2")
-Post.create(body: "test3")
-```
-
-```sh:webコンテナ
-rails db:seed
 ```
 
 ↓
@@ -536,4 +552,18 @@ Sign Up ページにアクセスしますので、任意の認証手段でアカ
 
 以上の設定が完了したら、画面最下部の「Create Web Service」ボタンをクリックして、Webサービスを作成してください。
 
-自動でデプロイログを表示する画面に遷移します。ここまでの実装が正しければ、`Build Command`、`Start Command`が順に実行され、pumaサーバーが起動が確認できるはずです。
+自動で Logs を表示する画面に遷移します。ここまでの実装が正しければ、`Build Command`、`Start Command`で設定したコマンドが順に実行され、最終的に puma サーバーの起動が確認できるはずです。
+
+![](https://storage.googleapis.com/zenn-user-upload/753cc5129af7-20231007.png)
+
+↓
+
+画面上部に、デフォルトのアプリURLである`https://<<アプリ名>>.onrender.com`が記載されていますので、`/posts`にアクセスしてください。
+
+![](https://storage.googleapis.com/zenn-user-upload/eed7828745b4-20231007.png)
+
+↓
+
+`posts`レコードの一覧画面にアクセスができれば、デプロイが正常に完了しています！また、一通りのCRUD操作も問題なく行えるはずです。
+
+![](https://storage.googleapis.com/zenn-user-upload/54242d8b7c46-20231007.png)
