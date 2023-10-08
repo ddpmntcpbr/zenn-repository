@@ -706,6 +706,14 @@ Railsコンソールの起動は難しくても、テストデータの流し込
 + # bundle exec rake db:seed
 ```
 
+### GUIクライアントアプリから本番環境DBにアクセスしたい
+
+DBアクセスに必要な`username`, `password`, `host`, `database`に基づいて接続できるような設定を行いましょう。
+
+特に MySQL GUI アプリとして [Sequel Ace](https://apps.apple.com/jp/app/sequel-ace/id1518036000?mt=12) を使用する場合は、以下の公式リファレンスに情報が記載されています。
+
+https://planetscale.com/docs/tutorials/connect-mysql-gui
+
 ## さいごに
 
 ここまで読んでいただきありがとうございました！
