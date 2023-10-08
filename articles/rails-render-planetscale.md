@@ -1,9 +1,9 @@
 ---
-title: "【完全無料】Railsアプリを無料で公開しよう！Render.com + PlanetScale デプロイ手順"
+title: "Rails アプリを完全無料で公開しよう！ Render.com + PlanetScale デプロイ手順"
 emoji: "🐑"
 type: "tech"
-topics: ["rails"]
-published: false
+topics: ["rails", "render", "mysql", "初心者", "初心者向け"]
+published: true
 ---
 
 ## この記事は？
@@ -56,8 +56,8 @@ https://planetscale.com/
 
 ここまでの話をまとめると、
 
-- Rails アプリは、 Render.com の Individual プランを利用
-- DB（MySQL） は、 PlanetScale の Hobby プランを利用
+- **Rails アプリは、 Render.com の Individual プランを利用**
+- **DB（MySQL） は、 PlanetScale の Hobby プランを利用**
 
 という構成で Rails アプリを完全無料でデプロイしていきたいと思います。
 
@@ -65,11 +65,11 @@ https://planetscale.com/
 
 ## 宣伝
 
-zenn上に、**Rails × Next.js × AWS アプリの開発チュートリアル本**をリリースしています！
+zenn上に、**Rails × Next.js × AWS アプリの開発チュートリアル本**をリリースしています。
 
 https://zenn.dev/ddpmntcpbr/books/rna-hands-on
 
-もし、あなたが「**転職用ポートフォリオとしての Rails アプリを無料デプロイする方法を知りたい**」というモチベーションで当記事に辿り着いた場合、こちらの書籍で**ワンランク上のポートフォリオ開発に挑戦**してみることを、ぜひ検討してもらえたらと思いますmm
+もし、あなたが「**転職用ポートフォリオとしての Rails アプリを無料デプロイする方法を知りたい**」という動機で当記事に辿り着いた場合、こちらの書籍でワンランク上のポートフォリオ開発に挑戦してみることをぜひ検討してもらえたらと思います。**Next.js、AWSに関する予備知識なしでも取り組める内容になっています**。
 
 また、以降の当記事で紹介する方法は、 API モードの Rails アプリおいても同じようにデプロイ可能です。さらにフロントエンドに Next.js を採用している場合、 [Vercel](https://vercel.com/) の無料プランを活用すれば、**Rails(Render.com + PlanetScale) × Next.js(Vercel) の構成も完全無料でデプロイ可能です**。
 
@@ -582,7 +582,7 @@ Sign Up ページにアクセスしますので、任意の認証手段でアカ
 
 ↓
 
-接続を進めていくと、 Render.com からのアクセスを許可するリポジトリを選択する画面に移ります。「All repositories」で全てのリポジトリのアクセスを許可、または「Only sekect repositories」で今回のデプロイ対象のリポジトリのみのアクセスを許可してください。
+接続を進めていくと、 Render.com からのアクセスを許可するリポジトリを選択する画面に移ります。「All repositories」で全てのリポジトリのアクセスを許可、または「Only select repositories」で今回のデプロイ対象のリポジトリのみのアクセスを許可してください。
 
 （ここのスクリーンショットを撮影し忘れてしまったので、代わりに GitHub 上の Settings における該当箇所の画面を参考イメージとして添付します）
 
@@ -647,6 +647,8 @@ Sign Up ページにアクセスしますので、任意の認証手段でアカ
 
 ## さいごに
 
-ここまで読んでいただきありがとうございました。
+ここまで読んでいただきありがとうございました！
 
-もしよろしければ、記事の **いいね** 、 **Twitter(X)** でのリアクションやアカウントフォロー([@ddpmntcpbr](https://twitter.com/ddpmntcpbr))をお願いします🙏。また、記事内容に不備がございましたら、記事コメント or Twitter DM でご連絡いただけますと幸いです。
+もしよろしければ、記事の**いいね**や **Twitter(X)** でのリアクション&アカウントフォロー([@ddpmntcpbr](https://twitter.com/ddpmntcpbr))をお願いします🙏
+
+また、記事内容に不備がございましたら記事コメントまたは Twitter DM でご連絡いただけますと幸いです。
