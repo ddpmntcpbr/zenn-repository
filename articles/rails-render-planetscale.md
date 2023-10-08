@@ -8,17 +8,17 @@ published: false
 
 ## この記事は？
 
-当記事を執筆している2023年10月現在において、開発した Ruby on Rails アプリを**完全無料**でデプロイする方法について整理したものです。
+当記事を執筆している2023年10月現在において、ローカルで開発した Ruby on Rails アプリを**完全無料**でデプロイする方法について整理したものです。
 
 ## 動機
 
 以前までは、Railsアプリの無料デプロイ先としては [Heroku](https://jp.heroku.com/) が主流でした。
 
-しかし、2022年11月より Heroku の無料プランが廃止となり、最安のEcoプランでも**月5ドル**の費用が発生するようになりました（2023年10月時点）。
+しかし、2022年11月より Heroku の無料プランが廃止となり、最安のEcoプランでも**月5ドル**の費用が発生するようになってしまいました（2023年10月時点）。
 
 https://jp.heroku.com/pricing
 
-企業等で本格的に運用するアプリであれば運用コストは飲み込めるかもしれませんが、特に個人開発のアプリの場合は、どうしてもコストを無料に抑えたいケースも多く存在するかと思います。
+企業等で本格的に運用するアプリであれば運用コストは飲み込めるかもしれませんが、特に個人開発のアプリの場合、どうしてもコストを無料に抑えたいケースもあると思います。
 
 - **転職用のポートフォリオ**として公開するので、高いパフォーマンスは必要ない。
 - 将来的には有料運用は想定しているが、最初の**市場検証フェーズ**では無料から始めたい。
@@ -32,11 +32,73 @@ Webアプリケーションの公開を含めた様々なサービスを提供�
 
 https://render.com/
 
-Heroku で出来ることのほとんどは Render.com でも実現可能であり、
+[Render.comの料金ページ](https://render.com/pricing)を確認すると、**Plan**としては、個人向け（Individual）プランが無料で提供されています。
 
-https://zenn.dev/mc_chinju/articles/compare_render_and_heroku
+![](https://storage.googleapis.com/zenn-user-upload/959d3bf625df-20231007.png)
 
-## Railsアプリの用意
+しかし、**Render.com が提供するデータベースは完全無料では利用できません**。**COMPUTE**内のデータベース（`PostgreSQL`）について確認すると、利用開始から90日のみ無料で、それ以降は**月額7ドル**の料金が発生することが記載されています。
+
+![](https://storage.googleapis.com/zenn-user-upload/12e0c81b4552-20231007.png)
+
+そこで今回は、Railsアプリのデプロイのみを Render.com に対して行い、データベースとしては**PlanetScale**という別サービスを活用していきます。
+
+## PlanetScale とは？
+
+**サーバーレスな MySQL を提供するサービス**です。
+
+https://planetscale.com/
+
+ここでいうサーバーレスは「**サーバー管理が不要で楽チン**」くらいのニュアンスです。従来の MySQL との機能的な差異もありますが、当記事においてはあまり意識する必要はありません。
+
+さて、肝心の[PlanetScaleの料金ページ](https://planetscale.com/pricing)を確認すると、Hobbyプランが無料で提供されています。**これは Render.com の PostgreSQL とは異なり期間の制約がなく、完全無料で利用が可能です**。
+
+![](https://storage.googleapis.com/zenn-user-upload/10e76aa19330-20231007.png)
+
+ここまでの話をまとめると、
+
+- Rails アプリは、 Render.com の Individual プランを利用
+- DB（MySQL） は、 PlanetScale の Hobby プランを利用
+
+という構成で Rails アプリを完全無料でデプロイしていきたいと思います。
+
+次からは、具体的な手順に移っていきます。
+
+## 宣伝
+
+zenn上に、**Rails × Next.js × AWS アプリの開発チュートリアル本**をリリースしています！
+
+https://zenn.dev/ddpmntcpbr/books/rna-hands-on
+
+もし、あなたが「**転職用ポートフォリオとしての Rails アプリを無料デプロイする方法を知りたい**」というモチベーションで当記事に辿り着いた場合、こちらの書籍で**ワンランク上のポートフォリオ開発に挑戦**してみることを、ぜひ検討してもらえたらと思いますmm
+
+また、以降の当記事で紹介する方法は、 API モードの Rails アプリおいても同じようにデプロイ可能です。さらにフロントエンドに Next.js を採用している場合、 [Vercel](https://vercel.com/) の無料プランを活用すれば、**Rails(Render.com + PlanetScale) × Next.js(Vercel) の構成も完全無料でデプロイ可能です**。
+
+## おことわり
+
+- 当記事の情報は、2023年10月時点のものとなっております。将来のプラン改定によっては、同じ手法でデプロイを行った場合にも料金が発生してしまう可能性もあるため、**必ず最新の公式料金ページをご確認の上で作業ください**。
+- PlanetScale でデータベースを作成する際、**クレジットカード**または**デビットカード**の登録が必要になります。
+
+## 手順
+
+### 流れ
+
+1. Rails アプリの実装
+2. PlanetScale でデータベースを作成
+3. Render.com に Rails アプリをデプロイ
+
+1で、デプロイするための簡易なRailsアプリを実装します。**docker/docker-compose** を用いて開発環境を構築する前提で話を進めていきますが、ローカル直下での開発でも問題はありません。
+
+|項目|バージョン|
+|---|---|
+|Ruby|3.1.2|
+|rails|7.0.4|
+|MySQL(development環境)|8.0.32|
+
+また、すでに何らかの Rails アプリを用意している場合は、2から読み進めるようにしてください。
+
+### 1. Railsアプリの実装
+
+任意の新規ディレクトリを作成し、直下に以下のファイルを新規作成してください。
 
 ```:ディレクトリ構造
 .
@@ -47,7 +109,25 @@ https://zenn.dev/mc_chinju/articles/compare_render_and_heroku
 └── entrypoint.sh
 ```
 
-#### docker-compose.yml
+```dockerfile:rails/Dockerfile
+FROM ruby:3.1.2
+RUN apt-get update -qq && apt-get install -y vim
+
+RUN mkdir /myapp
+WORKDIR /myapp
+COPY Gemfile /myapp/Gemfile
+COPY Gemfile.lock /myapp/Gemfile.lock
+
+RUN gem update --system
+RUN bundle update --bundler
+
+RUN bundle install
+COPY . /myapp
+
+COPY entrypoint.sh /usr/bin/
+RUN chmod +x /usr/bin/entrypoint.sh
+ENTRYPOINT ["entrypoint.sh"]
+```
 
 ```yml:./docker-compose.yml
 version: '3'
@@ -78,26 +158,13 @@ volumes:
   mysql_data:
 ```
 
-#### Dockerfile
+```ruby:rails/Gemfile
+source "https://rubygems.org"
+gem "rails", "~> 7.0.4"
+```
 
-```dockerfile:rails/Dockerfile
-FROM ruby:3.1.2
-RUN apt-get update -qq && apt-get install -y vim
-
-RUN mkdir /myapp
-WORKDIR /myapp
-COPY Gemfile /myapp/Gemfile
-COPY Gemfile.lock /myapp/Gemfile.lock
-
-RUN gem update --system
-RUN bundle update --bundler
-
-RUN bundle install
-COPY . /myapp
-
-COPY entrypoint.sh /usr/bin/
-RUN chmod +x /usr/bin/entrypoint.sh
-ENTRYPOINT ["entrypoint.sh"]
+```ruby:rails/Gemfile.lock
+(空のファイルを作成)
 ```
 
 ```sh:rails/entrypoint.sh
@@ -109,16 +176,11 @@ rm -f /myapp/tmp/pids/server.pid
 exec "$@"
 ```
 
-#### Gemfile & Gemfile.lock
+`docker-compose.yml`で記載の通り、development環境では、ローカル上に構築した mysql を DB として使用します。
 
-```ruby:rails/Gemfile
-source "https://rubygems.org"
-gem "rails", "~> 7.0.4"
-```
+↓
 
-```ruby:rails/Gemfile.lock
-(空のファイルを作成)
-```
+以下コマンドで、Railsアプリを新規作成してください。
 
 ```sh:ターミナル
 docker compose run --rm web rails new . --database=mysql
@@ -147,6 +209,8 @@ docker compose run --rm web rails new . --database=mysql
 └── vendor
 ```
 
+↓
+
 webコンテナの Rails から dbコンテナの mysql にアクセスするため、`config/database.yml`を以下のように書き換えてください。
 
 ```yml:config/database.yml
@@ -164,6 +228,10 @@ development:
   password: password
 ```
 
+↓
+
+設定が完了したら、dockerを起動します。
+
 ```sh:ターミナル
 docker compose build
 ```
@@ -175,6 +243,8 @@ docker compose up -d
 http://localhost:3000 で Rails にアクセスできることを確認ください。
 
 ![](https://storage.googleapis.com/zenn-user-upload/09c62e8cd95f-20231003.png)
+
+↓
 
 動作確認のための簡単な機能として、**Post**モデルに対する CRUD を実装します。
 
@@ -198,7 +268,9 @@ rails db:migrate
 
 ↓
 
-http://localhost:3000/posts で posts 一覧画面にアクセスし、各種CRUD操作（作成、読込、更新、削除）を画面上から行えることを確認してください。以上で、アプリ実装は完了です。
+http://localhost:3000/posts で posts 一覧画面にアクセスし、各種CRUD操作（作成、読込、更新、削除）を画面上から行えることを確認してください。
+
+以上で、アプリ実装は完了になります。
 
 ![](https://storage.googleapis.com/zenn-user-upload/76643c6993cd-20231005.png)
 
@@ -208,8 +280,9 @@ http://localhost:3000/posts で posts 一覧画面にアクセスし、各種CRU
 
 ![](https://storage.googleapis.com/zenn-user-upload/7c3dfe3195b0-20231005.png)
 
-## PlanetScale
+### 2. PlanetScale でデータベースを作成
 
+production環境用の mysql DB として PlanetScale 上に DB を作成します。
 
 [PlanetScale](https://planetscale.com/)のトップページにアクセスしてください。
 
@@ -281,11 +354,11 @@ http://localhost:3000/posts で posts 一覧画面にアクセスし、各種CRU
 
 ↓
 
-以下スクロールすると、Railsアプリからデータベースのアクセスするための設定チュートリアルが記載されていますので、必要な部分に絞ってしたがって進めていきます。
+以下スクロールすると、Railsアプリからデータベースのアクセスするための設定チュートリアルが記載されていますので、こちらをヒントにしながら設定を進めていきます。
 
 ↓
 
-### Installation
+#### Installation
 
 **Installation**では、gemとして`mysql2`と`planetscale_rails`（development, test 環境のみ）の導入が提案されています。
 
@@ -295,7 +368,7 @@ http://localhost:3000/posts で posts 一覧画面にアクセスし、各種CRU
 
 ↓
 
-### Update production credentials
+#### Update production credentials
 
 **Update production credentials**では、データベースのアクセス情報の管理方法について記載されています。
 
@@ -319,7 +392,7 @@ planetscale:
   password: xxxxxxxxxxxxxxxxxx
 ```
 
-### Update database.yml
+#### Update database.yml
 
 **Update database.yml**では、Railsからデータベースにアクセスするための設定を変更する内容が記載されています。
 
@@ -355,7 +428,7 @@ planetscale:
 
 また、`sslca`に関する設定を新規で追加しています。これは Render.com におけるSSL証明書のパスを指し示しており、当設定を加えることで Render.com から PlanetScale データベースへのSSH接続を可能にしています。
 
-### Update production schema
+#### Update production schema
 
 **Update production schema**では、PlanetScaleデータベースのマイグレーションを実行する方法が記載されています。
 
@@ -363,13 +436,15 @@ planetscale:
 
 今回は、renderにRailsアプリをデプロイするたびにマイグレーションを自動実行するように設定を行いますので、ここはスキップでOKです。
 
-## Render
+### 3. Render.com に Rails アプリをデプロイ
+
+Render.com に Rails アプリをデプロイします。以下の公式チュートリアルを参考にしながら、今回のケースに沿うように少し改変しながら進めていきます。
 
 https://render.com/docs/deploy-rails
 
-### Raisの修正
+#### Raisの修正
 
-Render上でサービスを作成する前に、Railsにいくつかの修正を加えます。
+Render.com 上でサービスを作成する前に、Railsにいくつかの修正を加えます。
 
 `config/puma.rb`を開き、以下2箇所のコメントアウトを解除してください。
 
@@ -455,7 +530,9 @@ bundle exec rake assets:clean
 bundle exec rake db:migrate
 ```
 
-こちらの shファイルをRender上で実行できるようにするため、パーミッションを変更します。
+Railsアプリの再デプロイが行われる度に、ここに記述されたコマンドが実行されるようになります（データベースのマーグレーションはここで行っています）。
+
+こちらの shファイルを Render.com 上で実行できるようにするため、パーミッションを変更します。
 
 ```sh:webコンテナ
 chmod a+x bin/render-build.sh
@@ -471,7 +548,7 @@ git commit -m "Renderへのデプロイ準備"
 git push origin HEAD
 ```
 
-### Renderサービスの作成
+#### Render.com サービスの作成
 
 [render.com](https://render.com/)を用いて、Railsアプリのデプロイを行なっていきます。[サイトトップページ](https://render.com)から「GET STARTED」にアクセスしてください。
 
@@ -505,7 +582,7 @@ Sign Up ページにアクセスしますので、任意の認証手段でアカ
 
 ↓
 
-接続を進めていくと、Renderからのアクセスを許可するリポジトリを選択する画面に移ります。「All repositories」で全てのリポジトリのアクセスを許可、またh「Only sekect repositories」で今回のデプロイ対象のリポジトリのみのアクセスを許可してください。
+接続を進めていくと、 Render.com からのアクセスを許可するリポジトリを選択する画面に移ります。「All repositories」で全てのリポジトリのアクセスを許可、または「Only sekect repositories」で今回のデプロイ対象のリポジトリのみのアクセスを許可してください。
 
 （ここのスクリーンショットを撮影し忘れてしまったので、代わりに GitHub 上の Settings における該当箇所の画面を参考イメージとして添付します）
 
@@ -513,13 +590,13 @@ Sign Up ページにアクセスしますので、任意の認証手段でアカ
 
 ↓
 
-リポジトリへのアクセス許可が完了すると、Render.comの画面上にリポジトリ名が表示されるようになりますので、対象リポジトリを「Connect」してください。
+リポジトリへのアクセス許可が完了すると、 Render.com の画面上にリポジトリ名が表示されるようになりますので、対象リポジトリを「Connect」してください。
 
 ![](https://storage.googleapis.com/zenn-user-upload/be2f1fea21b7-20231005.png)
 
 ↓
 
-以下のように設定を行ってください。
+構築するWebサービスに関する設定画面に移りますので、以下のように設定を行ってください。
 
 |項目|値|
 |---|---|
@@ -544,7 +621,7 @@ Sign Up ページにアクセスしますので、任意の認証手段でアカ
 
 |key|value|
 |---|---|
-|RAILS_MASTER_KEY|Railsアプリの`config/master.key`に記載のランダム文字列をコピペ|
+|RAILS_MASTER_KEY|Railsアプリの`config/master.key`に記載の文字列をコピペ|
 
 ![](https://storage.googleapis.com/zenn-user-upload/33f6be5c3dd8-20231006.png)
 
@@ -567,3 +644,9 @@ Sign Up ページにアクセスしますので、任意の認証手段でアカ
 `posts`レコードの一覧画面にアクセスができれば、デプロイが正常に完了しています！また、一通りのCRUD操作も問題なく行えるはずです。
 
 ![](https://storage.googleapis.com/zenn-user-upload/54242d8b7c46-20231007.png)
+
+## さいごに
+
+ここまで読んでいただきありがとうございました。
+
+もしよろしければ、記事の **いいね** 、 **Twitter(X)** でのリアクションやアカウントフォロー([@ddpmntcpbr](https://twitter.com/ddpmntcpbr))をお願いします🙏。また、記事内容に不備がございましたら、記事コメント or Twitter DM でご連絡いただけますと幸いです。
