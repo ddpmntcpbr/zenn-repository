@@ -655,9 +655,13 @@ Sign Up ページにアクセスしますので、任意の認証手段でアカ
 
 ### アプリの再デプロイがしたい
 
-Render.com ではデフォルトの設定で、リポジトリの`main`ブランチに変更差分が生じた際に自動的に再デプロイをしてくれます。
+Render.com ではデフォルトの設定で、リポジトリの`main`ブランチに変更差分が生じた際に自動的に再デプロイをしてくれます。したがって、何か特別なデプロイ作業は必要ありません。
 
-したがって、何か特別なデプロイ作業は必要ありません。
+デプロイの関する設定は、「Settings > Build & Deploy」から確認できます。
+
+![](https://storage.googleapis.com/zenn-user-upload/ba20d84a4ce4-20231008.png)
+
+![](https://storage.googleapis.com/zenn-user-upload/f13a54225b89-20231008.png)
 
 ### URLを独自ドメインにしたい
 
@@ -673,7 +677,7 @@ Render.com の「Shell」からシェルを起動し、`$ rails s`を実行す�
 
 ### seed.rb のテストデータを本番環境DBに流し込みたい
 
-Railsコンソールの起動は難しくても、テストデータの流し込みであれば手段はあります。
+Railsコンソールの起動は難しくても、テストデータの流し込みだけであれば可能です。
 
 `db/seeds.rb`を任意に作成した後、`bin/render-build.sh`にテストデータを流し込むコマンドを追加してリポジトリに push します。
 
@@ -691,7 +695,7 @@ Railsコンソールの起動は難しくても、テストデータの流し込
 
 自動で再デプロイが行われる過程で当コマンドが実行され、本番環境DBにテストデータが流し込まれます。
 
-このままでは、再デプロイの度にテストデータ生成が繰り返し実行されてしまうので、一度テストデータ生成が完了したら、当該コマンドは削除 or コメントアウトしておきましょう。
+また、このままでは再デプロイの度にテストデータ生成が繰り返し実行されてしまうので、一度テストデータ生成が完了したら、当該コマンドは削除 or コメントアウトしておきましょう。
 
 ```diff sh:bin/render-build.sh
   #!/usr/bin/env bash
@@ -710,9 +714,11 @@ Railsコンソールの起動は難しくても、テストデータの流し込
 
 DBアクセスに必要な`username`, `password`, `host`, `database`に基づいて接続できるような設定を行いましょう。
 
-特に MySQL GUI アプリとして [Sequel Ace](https://apps.apple.com/jp/app/sequel-ace/id1518036000?mt=12) を使用する場合は、以下の公式リファレンスに情報が記載されています。
+特に MySQL GUI アプリとして [Sequel Ace](https://apps.apple.com/jp/app/sequel-ace/id1518036000?mt=12) を使用する場合は、以下の公式リファレンスにしたがって設定を行えばOKです。
 
 https://planetscale.com/docs/tutorials/connect-mysql-gui
+
+![](https://storage.googleapis.com/zenn-user-upload/6f45ad36ec6f-20231008.png)
 
 ## さいごに
 
