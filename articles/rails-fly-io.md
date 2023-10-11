@@ -1,14 +1,14 @@
 ---
-title: "【初心者向け】Rails アプリを完全無料で公開しよう！ Render.com + PlanetScale デプロイ手順"
+title: "【初心者向け】Rails アプリを完全無料で公開しよう！ Fly.io デプロイ手順"
 emoji: "🐑"
 type: "tech"
-topics: ["rails", "render", "mysql", "初心者", "初心者向け"]
-published: true
+topics: ["rails", "postgresql", "初心者", "初心者向け"]
+published: false
 ---
 
 ## この記事は？
 
-当記事を執筆している2023年10月現在において、ローカルで開発した Ruby on Rails アプリを**完全無料**でデプロイする方法について整理したものです。
+当記事を執筆している2023年10月現在において、ローカルで開発した Ruby on Rails アプリを**完全無料**でデプロイできるサービスである`Fly.io`の利用手順を整理したものです。
 
 ## 動機
 
@@ -24,44 +24,15 @@ https://jp.heroku.com/pricing
 - 将来的には有料運用は想定しているが、最初の**市場検証フェーズ**では無料から始めたい。
 - **単なる趣味アプリ**でしかないので、お金がかかるなら公開はできない。
 
-そこで当記事では、 Heroku の無料プランに代わる手段として、**Render.com** + **PlanetScale** による無料デプロイ方法を解説していきます。
+そこで当記事では、 Heroku の無料プランに代わる手段として、**Fly.io**による無料デプロイ方法を解説していきます。
 
-## Render.com とは？
+## Fly.io とは？
 
 Webアプリケーションの公開を含めた様々なサービスを提供する PaaS です。当記事では、**Herokuの代替サービス**くらいの粒度で認識しておいてもらえればと思います。
 
-https://render.com/
+https://fly.io/
 
-[Render.comの料金ページ](https://render.com/pricing)を確認すると、**Plan**としては、個人向け（Individual）プランが無料で提供されています。
-
-![](https://storage.googleapis.com/zenn-user-upload/959d3bf625df-20231007.png)
-
-しかし、**Render.com が提供するデータベースは完全無料では利用できません**。**COMPUTE**内のデータベース（`PostgreSQL`）について確認すると、利用開始から90日のみ無料で、それ以降は**月額7ドル**の料金が発生してしまいます。
-
-![](https://storage.googleapis.com/zenn-user-upload/12e0c81b4552-20231007.png)
-
-今回は、Railsアプリのデプロイのみを Render.com に対して行い、データベースとしては **PlanetScale** という別サービスを活用することで、**期間制約なしの無料デプロイ**を実現してみたいと思います。
-
-## PlanetScale とは？
-
-**サーバーレスな MySQL を提供するサービス**です。
-
-https://planetscale.com/
-
-ここでいうサーバーレスは「**サーバー管理が不要で楽チン**」くらいのニュアンスの理解でいったんは問題ないと思います。従来の MySQL との機能的な差異もありますが、当記事においてはあまり意識する必要はありません。
-
-さて、肝心の[PlanetScaleの料金ページ](https://planetscale.com/pricing)を確認すると、Hobbyプランが無料で提供されています。**これは Render.com の PostgreSQL とは異なり期間の制約がなく、完全無料で利用が可能です**。
-
-![](https://storage.googleapis.com/zenn-user-upload/10e76aa19330-20231007.png)
-
-ここまでの話をまとめると、
-
-- **Rails アプリは、 Render.com の Individual プランを利用**
-- **DB（MySQL） は、 PlanetScale の Hobby プランを利用**
-
-という構成で Rails アプリを完全無料でデプロイしていきたいと思います。
-
-次からは、具体的な手順に移っていきます。
+[Fly.ioの料金ページ](https://fly.io/docs/about/pricing/#free-allowances)を確認すると、Freeプランでも以下の機能を利用できると記載されてます。
 
 ## 宣伝
 
@@ -71,7 +42,7 @@ https://zenn.dev/ddpmntcpbr/books/rna-hands-on
 
 もし、あなたが「**転職用ポートフォリオとしての Rails アプリを無料デプロイする方法を知りたい**」という動機で当記事に辿り着いた場合、こちらの書籍でワンランク上のポートフォリオ開発に挑戦してみることをぜひ検討してもらえたらと思います。**Next.js、AWSに関する予備知識なしでも取り組める内容になっています**。
 
-また、以降の当記事で紹介する方法は、 API モードの Rails アプリおいても同じようにデプロイ可能です。さらにフロントエンドに Next.js を採用している場合、 [Vercel](https://vercel.com/) の無料プランを活用すれば、**Rails(Render.com + PlanetScale) × Next.js(Vercel) の構成も完全無料でデプロイ可能です**。
+また、以降の当記事で紹介する方法は、 API モードの Rails アプリおいても同じようにデプロイ可能です。さらにフロントエンドに Next.js を採用している場合、 [Vercel](https://vercel.com/) の無料プランを活用すれば、**Rails(Fly.io) × Next.js(Vercel) の構成も完全無料でデプロイ可能です**。
 
 ## おことわり
 
@@ -137,29 +108,30 @@ ENTRYPOINT ["entrypoint.sh"]
 version: '3'
 services:
   db:
-    image: mysql:8.0.32
+    image: postgres:16.0
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: myapp_development
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-    ports:
-      - "3307:3306"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_volume:/var/lib/postgresql/data
+    restart: always
   web:
     build: .
-    command: bash -c "bundle exec rails s -b '0.0.0.0'"
+    command: bash -c "bundle exec rails s -p 3000 -b '0.0.0.0'"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     volumes:
       - .:/myapp
     ports:
-      - 3000:3000
-    depends_on:
-      - db
+      - "3000:3000"
+    restart: always
     tty: true
     stdin_open: true
+    depends_on:
+      - db
 volumes:
-  mysql_data:
+  postgres_volume:
 ```
 
 ```ruby:rails/Gemfile
@@ -187,7 +159,7 @@ exec "$@"
 以下コマンドで、Railsアプリを新規作成してください。
 
 ```sh:ターミナル
-docker compose run --rm web rails new . --database=mysql
+docker compose run --rm web rails new . --force --database=postgresql
 ```
 
 ```sh:ディレクトリ構造
@@ -219,22 +191,21 @@ webコンテナの Rails から dbコンテナの mysql にアクセスするた
 
 ```yml:config/database.yml
 default: &default
-  adapter: mysql2
-  encoding: utf8mb4
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  username: root
-  port: 3306
+  adapter: postgresql
+  encoding: unicode
+  host: db
+  username: postgres
+  password: password
+  pool: 5
 
 development:
   <<: *default
-  host: db
   database: myapp_development
-  password: password
 ```
 
 ↓
 
-設定が完了したら、dockerを起動します。
+設定が完了したら docker を起動します。
 
 ```sh:ターミナル
 docker compose build
@@ -253,7 +224,7 @@ docker compose exec web /bin/bash
 ```
 
 ```sh:webコンテナ
-rails db:create
+web rails db:create
 ```
 
 http://localhost:3000 で Rails にアクセスできることを確認ください。
@@ -264,7 +235,7 @@ http://localhost:3000 で Rails にアクセスできることを確認くださ
 
 動作確認のための簡単な機能として、**Post**モデルに対する CRUD を実装します。
 
-webコンテナ内で scaffoldによる機能一括作成を行ってください。
+webコンテナ内で scaffold による機能一括作成を行ってください。
 
 ```sh:webコンテナ
 rails g scaffold Post body:text
@@ -288,161 +259,34 @@ http://localhost:3000/posts で posts 一覧画面にアクセスし、各種CRU
 
 ![](https://storage.googleapis.com/zenn-user-upload/7c3dfe3195b0-20231005.png)
 
-### 2. PlanetScale でデータベースを作成
+### Fly.ioにデプロイ
 
-production環境用の mysql DB として PlanetScale 上に DB を作成します。
+Fly.ioのトップページにアクセスします。
 
-[PlanetScale](https://planetscale.com/)のトップページにアクセスしてください。
+https://fly.io/
 
-![](https://storage.googleapis.com/zenn-user-upload/b9f8a64eaab7-20231004.png)
-
-↓
-
-「Get Started」にアクセスすると Sign Up 画面に入れますので、メールアドレス認証 or GitHub アカウント認証のいずれかの手段でアカウントを作成してください。筆者は GitHub アカウント認証にしています。
-
-![](https://storage.googleapis.com/zenn-user-upload/5f6d7ec7678a-20231004.png)
+![](https://storage.googleapis.com/zenn-user-upload/1a1e2b80bfd7-20231011.png)
 
 ↓
 
-アカウント作成が完了するとダッシュボードにアクセスできるようになりますので、「Create a new database」からデータベースの新規作成を開始します。
+「Sign Up」からサインアップを行なってください。
 
-![](https://storage.googleapis.com/zenn-user-upload/487ea25d9765-20231004.png)
-
-↓
-
-以下の設定項目を入力してください。
-
-|項目|値|
-|---|---|
-|Database name|任意。ここでは `myapp_production` としています|
-|Region|ap-northeast-1(Tokyo)|
-|Plan type|Hobby|
-|Cluster size|Hobbyプランでは設定変更不可のためスキップ|
-|Autoscaling storage|Hobbyプランでは設定変更不可のためスキップ|
-
-![](https://storage.googleapis.com/zenn-user-upload/baa0ff9197dc-20231004.png)
-
-![](https://storage.googleapis.com/zenn-user-upload/ea32b1c4b6b0-20231004.png)
-
-![](https://storage.googleapis.com/zenn-user-upload/07ebc0ee1310-20231004.png)
-
-![](https://storage.googleapis.com/zenn-user-upload/08a796cbc0d3-20231004.png)
+![](https://storage.googleapis.com/zenn-user-upload/0e5d93bab76e-20231011.png)
 
 ↓
 
-画面下にスクロールすると、「Please add a creadit or debit card to this organization」と記載されてますので、「Add new card」から手元のクレジットカードorデビットカード情報を登録してください。
+サインアップが完了するとダッシュボードにアクセスできるようになりますので、「**Add a payment method**」からクレジッドカード情報を入力してください。
 
-![](https://storage.googleapis.com/zenn-user-upload/5798e1fb55f8-20231004.png)
+![](https://storage.googleapis.com/zenn-user-upload/dd8bff73856b-20231011.png)
 
-↓
 
-カード情報の入力が完了したら、「Create database」からデータベースを作成してください。
 
-![](https://storage.googleapis.com/zenn-user-upload/ac3777e976cc-20231004.png)
 
-↓
 
-データベースが作成されたら、そのままデータベースに対するアクセスキーを生成する画面に遷移します。「Select your language or framework」で「Rails」を選択してください。
 
-![](https://storage.googleapis.com/zenn-user-upload/47da16eed942-20231004.png)
 
-↓
 
-画面下にスクロールし、「Create a password」から「Password name」を任意で入力（デフォルト入力値でもOK）し、「Create password」をクリックしてください。
 
-なお、「Password name」はあくまでパスワード情報を一意に識別するための文字列であって、パスワードそのものではありません。したがって、自分が分かりやすいもので問題ありません。
-
-![](https://storage.googleapis.com/zenn-user-upload/eb050fd4c05d-20231004.png)
-
-↓
-
-パスワード生成が完了すると、`Username`と`Password`が表示されます。**これらは秘匿情報となりますので、絶対に第三者へ流出させないでください**。
-
-![](https://storage.googleapis.com/zenn-user-upload/7cb4cf6292b9-20231004.png)
-
-↓
-
-以下スクロールすると、Railsアプリからデータベースのアクセスするための設定チュートリアルが記載されていますので、こちらをヒントにしながら設定を進めていきます。
-
-↓
-
-#### Installation
-
-**Installation**では、gemとして`mysql2`と`planetscale_rails`（development, test 環境のみ）の導入が提案されています。
-
-しかし、当ページの手順でRailsアプリを作成している場合、`mysql2`はすでに導入済みであること、 今回は本番環境でのみ PlanetScale データベースを利用することから`planetscale_rails`は導入不要であることから、ここの操作はスキップします。
-
-![](https://storage.googleapis.com/zenn-user-upload/8ec3092aabe7-20231004.png)
-
-↓
-
-#### Update production credentials
-
-**Update production credentials**では、データベースのアクセス情報の管理方法について記載されています。
-
-![](https://storage.googleapis.com/zenn-user-upload/1c4a5e09e4b5-20231005.png)
-
-Rails の credentials を利用して、データベースへのアクセス情報を保存します。webコンテナ内から vim で credentials ファイルを開いてください。
-
-```sh:webコンテナ
-EDITOR="vi" rails credentials:edit
-```
-
-画面上の`config/credentials.yml.enc`の内容をそのまま credentials ファイルに貼り付けてください。
-
-```yml:config/credentials.yml.enc
-.
-.
-planetscale:
-  username: xxxxxxxxxxxxxxxxxx
-  host: aws.connect.psdb.cloud
-  database: myapp_production
-  password: xxxxxxxxxxxxxxxxxx
-```
-
-#### Update database.yml
-
-**Update database.yml**では、Railsからデータベースにアクセスするための設定を変更する内容が記載されています。
-
-![](https://storage.googleapis.com/zenn-user-upload/c3c6ca2d60af-20231005.png)
-
-`development`に関しては今回 PlanetScale データベースを使用しないためスキップでOKです。`production`に関する設定のみ、画面に表示されているヒントを参考に、`config/database.yml`に設定を加えます。
-
-```diff yml:config/database.yml
-  default: &default
-    adapter: mysql2
-    encoding: utf8mb4
-    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-    username: root
-    port: 3306
-
-  development:
-    <<: *default
-    host: db
-    database: myapp_development
-    password:
-+
-+ production:
-+   <<: *default
-+   username: <%= Rails.application.credentials.planetscale&.fetch(:username) %>
-+   password: <%= Rails.application.credentials.planetscale&.fetch(:password) %>
-+   database: <%= Rails.application.credentials.planetscale&.fetch(:database) %>
-+   host: <%= Rails.application.credentials.planetscale&.fetch(:host) %>
-+   ssl_mode: verify_identity
-+   sslca: "/etc/ssl/certs/ca-certificates.crt"
-```
-
-`Rails.application.credentials.planetscale&.fetch(:xxx)`で、先ほど credentials ファイルに保存した`planetscale.xxx`キーの値を参照しています。
-
-また、`sslca`に関する設定を新規で追加しています。これは Render.com におけるSSL証明書のパスを指し示しており、当設定を加えることで Render.com から PlanetScale データベースへのSSH接続を可能にしています。
-
-#### Update production schema
-
-**Update production schema**では、PlanetScaleデータベースのマイグレーションを実行する方法が記載されています。
-
-![](https://storage.googleapis.com/zenn-user-upload/35f8a852dc87-20231005.png)
-
-今回は、renderにRailsアプリをデプロイするたびにマイグレーションを自動実行するように設定を行いますので、ここはスキップでOKです。
 
 ### 3. Render.com に Rails アプリをデプロイ
 
