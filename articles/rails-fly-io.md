@@ -63,7 +63,6 @@ https://zenn.dev/ddpmntcpbr/books/rna-hands-on
 |---|---|
 |Ruby|3.1.2|
 |rails|7.0.4|
-|MySQL(development環境)|8.0.32|
 
 開発アプリは以下のリポジトリからも確認できます。
 
@@ -108,24 +107,19 @@ ENTRYPOINT ["entrypoint.sh"]
 version: '3'
 services:
   db:
-    image: postgres:16.0
+    image: postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     volumes:
       - postgres_volume:/var/lib/postgresql/data
-    restart: always
   web:
     build: .
-    command: bash -c "bundle exec rails s -p 3000 -b '0.0.0.0'"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
     volumes:
       - .:/myapp
     ports:
       - "3000:3000"
-    restart: always
     tty: true
     stdin_open: true
     depends_on:
@@ -257,7 +251,7 @@ http://localhost:3000/posts で posts 一覧画面にアクセスし、各種CRU
 
 アプリ実装が完了したら、お使いの GitHub アカウントでリポジトリを作成し、ソースコードのプッシュまで行ってください。リポジトリの公開範囲は、パブリック／プライベートのどちらでも構いません。
 
-![](https://storage.googleapis.com/zenn-user-upload/7c3dfe3195b0-20231005.png)
+![](https://storage.googleapis.com/zenn-user-upload/234738eff553-20231011.png)
 
 ### Fly.ioにデプロイ
 
@@ -279,7 +273,65 @@ https://fly.io/
 
 ![](https://storage.googleapis.com/zenn-user-upload/dd8bff73856b-20231011.png)
 
+↓
 
+flyctlをインストールします。
+
+```sh:ターミナル
+brew install flyctl
+```
+
+↓
+
+ターミナルから Fly.io へログインします。下記コマンド実行後、ブラウザが開きますので、ログイン操作を行ってください。
+
+```sh:ターミナル
+fly auth login
+```
+
+![](https://storage.googleapis.com/zenn-user-upload/e897c58a7748-20231011.png)
+
+↓
+
+```sh:ターミナル
+fly launch --dockerfile Dockerfile
+```
+
+アプリ設定をインタラクティブに行うモードに入りますので、以下を参考に設定を行なってください。
+
+```sh:
+# アプリ名を任意で入力。
+? Choose an app name (leave blank to generate one):
+> rails-fly-io-app
+
+# デプロイ先のリージョンを選択。
+? Choose a region for deployment:
+> Tokyo, Japan (nrt)
+
+# DB として Postgresql を使用するかを選択。
+? Would you like to set up a Postgresql database now? (y/N)
+> y
+
+# Postgresql の利用プランを選択。無料利用したい場合は Development を選択。
+? Select configuration:
+> Development - Single node, 1x shared CPU, 256MB RAM, 1GB disk
+
+# リソースの使用を停止し、ノードをシャットダウンするかを選択。無料プランでは No。
+? Scale single node pg to zero after one hour? (y/N)
+> n
+
+# Redis サーバーを利用するかを選択。今回は No。
+? Would you like to set up an Upstash Redis database now? (y/N)
+> n
+
+# .dockerignore を作成するかを選択。今回は No。
+? Create .dockerignore from 1 .gitignore files? (y/N)
+> n
+
+# 今すぐデプロイを行うかを選択。今回は Yes。
+? Would you like to deploy now? (y/N)
+> y
+```
 
 
 
