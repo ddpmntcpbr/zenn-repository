@@ -141,7 +141,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: myapp_development
-      MYSQL_USER: user
+      MYSQL_USER: root
       MYSQL_PASSWORD: password
     ports:
       - "3307:3306"
@@ -222,14 +222,14 @@ default: &default
   adapter: mysql2
   encoding: utf8mb4
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  username: root
   port: 3306
 
 development:
   <<: *default
   host: db
-  database: myapp_development
+  username: root
   password: password
+  database: myapp_development
 ```
 
 ↓
@@ -413,14 +413,14 @@ planetscale:
     adapter: mysql2
     encoding: utf8mb4
     pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-    username: root
     port: 3306
 
   development:
     <<: *default
     host: db
+    username: root
+    password: password
     database: myapp_development
-    password:
 +
 + production:
 +   <<: *default
