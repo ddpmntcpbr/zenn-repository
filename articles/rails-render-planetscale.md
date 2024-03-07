@@ -33,9 +33,17 @@ PlanetScale については[最安値でも$39/month、特にアジアリージ�
 
 最後に当記事の扱いについて、 Rails アプリの無料公開はできなくなりますが、Render.com + PlanetScale によるデプロイを行う際の参考情報にはなるかと思いますので、記事自体は残してくことにします。
 
+以下、元の記事に戻ります。
+
+↓
+
+↓
+
+↓
+
 ## この記事は？
 
-当記事を執筆している2023年10月現在において、ローカルで開発した Ruby on Rails アプリを**完全無料**でデプロイする方法について整理したものです。
+当記事を執筆している2023年10月現在において、ローカルで開発した Ruby on Rails アプリを~~完全無料~~（※）でデプロイする方法について整理したものです。
 
 ## 動機
 
@@ -51,7 +59,7 @@ https://jp.heroku.com/pricing
 - 将来的には有料運用は想定しているが、最初の**市場検証フェーズ**では無料から始めたい。
 - **単なる趣味アプリ**でしかないので、お金がかかるなら公開はできない。
 
-そこで当記事では、 Heroku の無料プランに代わる手段として、**Render.com** + **PlanetScale** による無料デプロイ方法を解説していきます。
+そこで当記事では、 Heroku の無料プランに代わる手段として、**Render.com** + **PlanetScale** による~~無料デプロイ方法~~（※）を解説していきます。
 
 ## Render.com とは？
 
@@ -67,7 +75,7 @@ https://render.com/
 
 ![](https://storage.googleapis.com/zenn-user-upload/12e0c81b4552-20231007.png)
 
-今回は、Railsアプリのデプロイのみを Render.com に対して行い、データベースとしては **PlanetScale** という別サービスを活用することで、**期間制約なしの無料デプロイ**を実現してみたいと思います。
+今回は、Railsアプリのデプロイのみを Render.com に対して行い、データベースとしては **PlanetScale** という別サービスを活用することで、~~期間制約なしの無料デプロイ~~（※）を実現してみたいと思います。
 
 ## PlanetScale とは？
 
@@ -77,18 +85,10 @@ https://planetscale.com/
 
 ここでいうサーバーレスは「**サーバー管理が不要で楽チン**」くらいのニュアンスの理解でいったんは問題ないと思います。従来の MySQL との機能的な差異もありますが、当記事においてはあまり意識する必要はありません。
 
-さて、肝心の[PlanetScaleの料金ページ](https://planetscale.com/pricing)を確認すると、Hobbyプランが無料で提供されています。**これは Render.com の PostgreSQL とは異なり期間の制約がなく、完全無料で利用が可能です**。
+さて、肝心の[PlanetScaleの料金ページ](https://planetscale.com/pricing)を確認すると、Hobbyプランが無料で提供されています。~~これは Render.com の PostgreSQL とは異なり期間の制約がなく、完全無料で利用が可能です~~（※）。
 
 ![](https://storage.googleapis.com/zenn-user-upload/10e76aa19330-20231007.png)
 
-ここまでの話をまとめると、
-
-- **Rails アプリは、 Render.com の Individual プランを利用**
-- **DB（MySQL） は、 PlanetScale の Hobby プランを利用**
-
-という構成で Rails アプリを完全無料でデプロイしていきたいと思います。
-
-次からは、具体的な手順に移っていきます。
 
 ## 宣伝
 
@@ -97,8 +97,6 @@ zenn上に、**Rails × Next.js × AWS アプリの開発チュートリアル�
 https://zenn.dev/ddpmntcpbr/books/rna-hands-on
 
 もし、あなたが「**転職用ポートフォリオとしての Rails アプリを無料デプロイする方法を知りたい**」という動機で当記事に辿り着いた場合、こちらの書籍でワンランク上のポートフォリオ開発に挑戦してみることをぜひ検討してもらえたらと思います。**Next.js、AWSに関する予備知識なしでも取り組める内容になっています**。
-
-また、以降の当記事で紹介する方法は、 API モードの Rails アプリおいても同じようにデプロイ可能です。さらにフロントエンドに Next.js を採用している場合、 [Vercel](https://vercel.com/) の無料プランを活用すれば、**Rails(Render.com + PlanetScale) × Next.js(Vercel) の構成も完全無料でデプロイ可能です**。
 
 ## おことわり
 
@@ -758,3 +756,7 @@ https://planetscale.com/docs/tutorials/connect-mysql-gui
 もしよろしければ、記事の**いいね**や **Twitter(X)** でのリアクション&アカウントフォロー([@ddpmntcpbr](https://twitter.com/ddpmntcpbr))をお願いします🙏
 
 また、記事内容に不備がございましたら記事コメントまたは Twitter DM でご連絡いただけますと幸いです。
+
+## 注釈
+
+（※）2024年4月8日より有料になります。
