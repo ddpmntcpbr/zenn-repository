@@ -1,10 +1,37 @@
 ---
-title: "【初心者向け】Rails アプリを完全無料で公開しよう！ Render.com + PlanetScale デプロイ手順"
+title: "【※2024年4月より有料化】Rails アプリを公開しよう！ Render.com + PlanetScale デプロイ手順"
 emoji: "🐑"
 type: "tech"
 topics: ["rails", "render", "mysql", "初心者", "初心者向け"]
 published: true
 ---
+
+## （※2024年3月7日追記）重要事項
+
+当記事は、Render.com + PlanetScale の構成で Ruby on Rails アプリを無料デプロイする方法を整理したものでしたが、[2024年4月8日をもって PlanetScale の無料プラン(Hobby)が廃止されることが決定しました](https://planetscale.com/blog/planetscale-forever)。
+
+したがって、**当記事の手順では Rails アプリ無料公開はできなくなります**。
+
+代替案について検討しましたが、**2024年3月7日時点で Rails アプリを期間制限なしで無料公開する方法は見つかっていません**。
+
+PlanetScale については[最安値でも$39/month、特にアジアリージョンでは$47/monthの費用が発生する](https://planetscale.com/pricing)ため、安価に Rails アプリを公開したい場合は他のSaaSの利用をオススメします。
+
+以下、安価なプランが存在するSaaSを表にまとめておきます。
+
+|サービス名|コスト(プラン)|備考|
+|---|---|---|
+|[Heroku](https://jp.heroku.com/pricing)|**$5/month** (Eco) |「無料SSL」や「スリープ状態への移行なし」にしたい場合は 上限 **$7/month** の Basic プランを選択する|
+|[Render.com](https://render.com/pricing)|**$7/month** (Individual + Starter)|アカウントプランとして Individual (無料)に加入し、 PostgreSQL のプランとして Starter に加入する。ただし、**PostgreSQL はサービス開始から90日までは無料の Free プランを利用できる**。|
+|[Fly.io](https://fly.io/plans)|**$5/month** (Hobby)|-|
+
+個人的な意見としては、
+
+- 就活用ポートフォリオアプリとして一時的に公開するだけなら、 Render.com の Individual + Free プランでほぼ無料で済ませる。
+- 多少お金がかかってでも安定して長期的に運用したいなら、 Heroku の Starter プランで「無料SSL」「スリープ状態への移行なし」にしておく。
+
+といった使い分けになるのかなと思います（Fly.io の Hobby プランも安価でありますが、他2つに比べて日本語ドキュメントが少ないので、初学者にはややハードルが高いと思います）。
+
+最後に当記事の扱いについて、 Rails アプリの無料公開はできなくなりますが、Render.com + PlanetScale によるデプロイを行う際の参考情報にはなるかと思いますので、記事自体は残してくことにします。
 
 ## この記事は？
 
