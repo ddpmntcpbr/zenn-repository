@@ -1,5 +1,23 @@
 {
   "dependencies": {
     "zenn-cli": "^0.1.158"
-  }
+  },
+  "name": "zenn-repository",
+  "version": "1.0.0",
+  "description": "* [📘 How to use](https://zenn.dev/zenn/articles/zenn-cli-guide)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ddpmntcpbr/zenn-repository.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ddpmntcpbr/zenn-repository/issues"
+  },
+  "homepage": "https://github.com/ddpmntcpbr/zenn-repository#readme"
 }
