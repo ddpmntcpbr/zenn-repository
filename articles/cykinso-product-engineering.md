@@ -20,7 +20,7 @@ https://cykinso.co.jp/
 
 事業領域は BtoC・BtoB 両方にまたがっており、例えば BtoC ビジネスとして**個人向けの腸内検査キットのオンライン販売**を行っています。
 
-https://store.mykinso.com/shop/products/gut-v2
+https://store.mykinso.com/shop/products/gut-v2?utm_source=zenn&utm_medium=referral&utm_campaign=introduction_to_product_engineering&utm_content=card_first
 
 その中でも私は、BtoC領域におけるWebプロダクトの新規開発・運用保守をメインに行っています。例えば、上記の検査キットは**商品購入から検査結果閲覧までをすべてオンラインで完結できるサービス**となっており、マイページの登録や検査結果画面などのあらゆるWeb上のユーザー体験が、私の業務スコープです。
 
@@ -126,7 +126,7 @@ UXの全体像を俯瞰しておくことによって、より経営にインパ
 
 ## 体験記
 
-ここからは、弊社プロダクトである[**個人向けの腸内検査キット**](https://store.mykinso.com/shop/products/gut-v2)を対象に、私が「**自身がユーザーとなることを通じて、現状のUXを徹底的に言語化する**」というワークを実践した体験記をシェアしたいと思います。
+ここからは、弊社プロダクトである[**個人向けの腸内検査キット**](https://store.mykinso.com/shop/products/gut-v2?utm_source=zenn&utm_medium=referral&utm_campaign=introduction_to_product_engineering&utm_content=text_link)を対象に、私が「**自身がユーザーとなることを通じて、現状のUXを徹底的に言語化する**」というワークを実践した体験記をシェアしたいと思います。
 
 読者の皆さんにも真似しやすいように書くことを意識しましたので、興味がありましたら、ぜひ一緒に実践をしてもらえたらと思います！
 
@@ -259,4 +259,4 @@ STEP3までで、個人としてのワークは完了になります。
 
 最後まで読んでいただきありがとうございました！もし、弊社プロダクトにも興味を持っていただけましたら、ぜひお手に取ってみてもらえたらと思います。
 
-https://store.mykinso.com/shop/products/gut-v2
+https://store.mykinso.com/shop/products/gut-v2?utm_source=zenn&utm_medium=referral&utm_campaign=introduction_to_product_engineering&utm_content=card_second
