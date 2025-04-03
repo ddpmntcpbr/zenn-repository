@@ -2,7 +2,7 @@
 title: "【体験記あり】AI時代に求められるプロダクトエンジニアリング思考と、今日から始める第一歩目"
 emoji: "🐦"
 type: "idea"
-topics: ["初心者", "ポエム", "学習", "キャリア"]
+topics: ["ai", "生成ai", "プロダクトエンジニア", "uiuxdesign", "キャリア"]
 publication_name: "cykinso"
 published: false
 ---
