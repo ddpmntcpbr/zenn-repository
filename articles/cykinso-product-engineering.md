@@ -264,8 +264,8 @@ STEP3までで、個人としてのワークは完了になります。ワーク
 
 ### あなたも腸を見てみませんか？
 
-最後まで読んでいただきありがとうございました！
+最後まで読んでいただきありがとうございました！面白いと感じていただけましたら、**いいね** や **Xでのシェア** をしていただけると、大変励みになります。
 
-もし、弊社プロダクトにも興味を持っていただけましたら、ぜひお手に取ってみてもらえたらと思います。
+もし、弊社プロダクトにも興味を持っていただけましたら、ぜひお手に取ってみてもらえたらと思います！
 
 https://store.mykinso.com/shop/products/gut-v2?utm_source=zenn&utm_medium=referral&utm_campaign=introduction_to_product_engineering&utm_content=card_second
