@@ -4,7 +4,7 @@ emoji: "🐦"
 type: "idea"
 topics: ["ai", "生成ai", "プロダクトエンジニア", "uiuxdesign", "キャリア"]
 publication_name: "cykinso"
-published: false
+published: true
 ---
 
 ## この記事は？
